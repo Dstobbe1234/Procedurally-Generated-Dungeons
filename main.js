@@ -20,11 +20,7 @@ class corridorTile {
         this.h = h;
     }
     fillRect() {
-        if(this.x === 500 && this.y === 500) {
-            ctx.fillStyle = "red"
-        } else {
-            ctx.fillStyle = "black"
-        }
+        ctx.fillStyle = this.color
         ctx.fillRect(this.x, this.y, this.w, this.h)
     }
 }
@@ -35,12 +31,12 @@ function proceduralCorridors() {
     let previousVectorIndex = [0, 0]
     let x = 500;
     let y = 500;
+    let r = 0
     for(let i = 0; i < 20; i++) {
         vectorArr.splice(previousVectorIndex[0], 1)
-        let randomSegmentLength = randomInt(10, 50);
+        let randomSegmentLength = randomInt(50, 100);
         let randomVectorIndex = randomInt(0, 2);
-        let vector = vectorArr[0].concat(vectorArr)[randomVectorIndex];
-
+        let vector = vectorArr[0][randomVectorIndex];
         for(let m = 0; m < randomSegmentLength; m++) {
             x += (2 * vector[0]);
             y += (2 * vector[1]);
@@ -49,24 +45,23 @@ function proceduralCorridors() {
         console.log(vectorArr)
         console.log(randomVectorIndex)
         console.log(vector);
-
+        r += 100
+        console.log(vector[0], vector[1])
         vectorArr = [[[0, -1], [0, 1]], [[-1, 0], [1, 0]]];
-        for(let p = 0; p < vectorArr; p++) {
-            for(let l = 0; l < vectorArr[p]; l++) {
+        for(let p = 0; p < vectorArr.length; p++) {
+            for(let l = 0; l < vectorArr[p].length; l++) {
                 if(vectorArr[p][l][0] === vector[0] && vectorArr[p][l][1] === vector[1]) {
-                    previousVectorIndex = [p, l]
+                    previousVectorIndex = [p, l];
                     break;
                 }
             }
         }
+        console.log(previousVectorIndex)
 
     }
-    for(let test = 0; test < corridorTileArr.length; test++) {
-        setTimeout(function() {
-            displayTiles(corridorTileArr[test])
-        }, 1000)
+    for(let i = 0; i < corridorTileArr.length; i++) {
+        displayTiles(corridorTileArr[i])
     }
-    //displayTiles()
 }
 
 function displayTiles(tile) {
@@ -75,4 +70,4 @@ function displayTiles(tile) {
 
 
 
-//proceduralCorridors()
+proceduralCorridors()
