@@ -3,7 +3,6 @@ const ctx = cnv.getContext("2d");
 cnv.width = 1000;
 cnv.height = 1000;
 
-document.addEventListener("keydown", keydownListener);
 document.addEventListener("mousedown", mousedownListener);
 document.addEventListener("mouseup", mouseupListener);
 document.addEventListener("mousemove", mousemoveListener);
@@ -27,18 +26,6 @@ function mousemoveListener(event) {
   mouse.y = event.y - cnv.getBoundingClientRect().y;
 }
 
-function keydownListener(event) {
-  if (event.key === "w") {
-    playerDisplacement[1] += 50;
-  } else if (event.key === "s") {
-    playerDisplacement[1] -= 50;
-  } else if (event.key === "d") {
-    playerDisplacement[0] -= 50;
-  } else if (event.key === "a") {
-    playerDisplacement[0] += 50;
-  }
-}
-
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }
@@ -51,43 +38,35 @@ let player = {
   },
 };
 
-let playerDisplacement = [0, 0];
-
 //hi
 // Random walk - procedural dungeon generation
 
-corridorTileArr = [];
+let corridorTileArr = {
+  horizontal: [],
+  vertical: [],
+};
 
 class corridorTile {
-  constructor(x, y, w, h, v) {
+  constructor(x, y, w, h) {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
-    this.v = v;
   }
   draw() {
     ctx.fillStyle = "black";
-    ctx.fillRect(
-      this.x + playerDisplacement[0],
-      this.y + playerDisplacement[1],
-      this.w,
-      this.h
-    );
+    ctx.fillRect(this.x, this.y, this.w, this.h);
   }
 }
 
+let vector;
+let nextVector;
+let randomSegmentLength;
 function generateCorridors() {
   let previousVectorIndex;
   let x = 500;
   let y = 500;
   for (let i = 1; i <= 21; i++) {
-    // await new Promise((resolve) => {
-    //   setTimeout(() => {
-    //     console.log(i);
-    //     resolve();
-    //   }, 500);
-    // });
     let vectorArr = [
       [
         [0, -1],
@@ -98,72 +77,55 @@ function generateCorridors() {
         [1, 0],
       ],
     ];
-    let randomSegmentLength = randomInt(10, 50);
-    let vector;
+    let randomVectorIndex = randomInt(0, 2);
     if (i !== 1 && i !== 21) {
-      vectorArr.splice(previousVectorIndex[0], 1);
-      let randomVectorIndex = randomInt(0, 2);
-      console.log(randomVectorIndex);
-      console.log(vectorArr);
-      vector = vectorArr[0][randomVectorIndex];
+      nextVector = vectorArr.splice(previousVectorIndex[0], 1)[0][randomVectorIndex];
     } else {
-      console.log("E");
+      randomSegmentLength = randomInt(10, 50);
       vector = [0, -1];
+      nextVector = vectorArr[1][randomVectorIndex];
     }
-
-    let distanceChanged = 0;
-    let posOrNegDistanceChange = randomInt(0, 2);
+    let nexSegmentLength = randomInt(10, 50);
     console.log(randomSegmentLength);
-    if (
-      JSON.stringify(vector) === JSON.stringify([0, 1]) ||
-      JSON.stringify(vector) === JSON.stringify([0, -1])
-    ) {
-      for (let w = 0; w < corridorTileArr.length; w++) {
+    let posOrNegDistanceChange = randomInt(0, 2);
+    if (vector[0] === 0) {
+      console.log(y + 1 * (vector[1] * randomSegmentLength));
+      tileIterations: for (let w = 0; w < corridorTileArr.horizontal.length; w++) {
         if (
-          JSON.stringify(corridorTileArr[w].v) === JSON.stringify([1, 0]) ||
-          JSON.stringify(corridorTileArr[w].v) === JSON.stringify([-1, 0])
+          y + 1 * (vector[1] * randomSegmentLength) > corridorTileArr.horizontal[w].y - 2 &&
+          y + 1 * (vector[1] * randomSegmentLength) < corridorTileArr.horizontal[w].y + 2
         ) {
-          if (
-            (y + 1 * vector[1]) * randomSegmentLength >
-              corridorTileArr[w].y - 2 &&
-            (y + 1 * vector[1]) * randomSegmentLength <
-              corridorTileArr[w].y + 2 &&
-            x === corridorTileArr[w].x
-          ) {
-            console.log("working");
-            if (posOrNegDistanceChange == 1) {
-              distanceChanged++;
-              randomSegmentLength++;
-            } else {
-              distanceChanged--;
-              randomSegmentLength--;
+          console.log("EEEEEE");
+          for (let p = 0; p < nexSegmentLength; p++) {
+            if (x + 1 * (nextVector[0] * p) === corridorTile.horizontal[x].x) {
+              console.log("EEEEEEEEEEEE");
+              if (posOrNegDistanceChange == 1) {
+                randomSegmentLength++;
+              } else {
+                randomSegmentLength--;
+              }
+              w = 0;
+              break tileIterations;
             }
-            w = 0;
           }
         }
       }
     } else {
-      for (let w = 0; w < corridorTileArr.length; w++) {
+      for (let w = 0; w < corridorTileArr.vertical.length; w++) {
         if (
-          JSON.stringify(corridorTileArr[w].v) === JSON.stringify([0, 1]) ||
-          JSON.stringify(corridorTileArr[w].v) === JSON.stringify([0, -1])
+          x + 1 * (vector[1] * randomSegmentLength) > corridorTileArr.vertical[w].x - 2 &&
+          x + 1 * (vector[1] * randomSegmentLength) < corridorTileArr.vertical[w].x + 2
         ) {
-          if (
-            (x + 1 * vector[1]) * randomSegmentLength >
-              corridorTileArr[w].x - 2 &&
-            (x + 1 * vector[1]) * randomSegmentLength <
-              corridorTileArr[w].x + 2 &&
-            y === corridorTileArr[w].y
-          ) {
-            console.log("working");
-            if (posOrNegDistanceChange == 1) {
-              distanceChanged++;
-              randomSegmentLength++;
-            } else {
-              distanceChanged--;
-              randomSegmentLength--;
+          for (let p = 0; p < nexSegmentLength; p++) {
+            if (y + 1 * (nextVector[0] * p) === corridorTileArr.vertical[w].y) {
+              if (posOrNegDistanceChange == 1) {
+                randomSegmentLength++;
+              } else {
+                randomSegmentLength--;
+              }
             }
             w = 0;
+            break;
           }
         }
       }
@@ -172,19 +134,27 @@ function generateCorridors() {
     for (let m = 0; m <= randomSegmentLength; m++) {
       x += 1 * vector[0];
       y += 1 * vector[1];
-      corridorTileArr.push(new corridorTile(x, y, 1, 1, vector));
-      previousVectorIndex = vector;
-      requestAnimationFrame(loop);
+      if (vector[0] === 0) {
+        corridorTileArr.vertical.push(new corridorTile(x, y, 1, 1));
+      } else {
+        corridorTileArr.horizontal.push(new corridorTile(x, y, 1, 1));
+      }
     }
+    previousVectorIndex = vector;
+    vector = nextVector;
+    randomSegmentLength = nexSegmentLength;
+    requestAnimationFrame(loop);
   }
 
   function loop() {
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, cnv.width, cnv.height);
-    for (let i = 0; i < corridorTileArr.length; i++) {
-      corridorTileArr[i].draw();
+    for (let i = 0; i < corridorTileArr.vertical.length; i++) {
+      corridorTileArr.vertical[i].draw();
     }
-    player.draw();
+    for (let f = 0; f < corridorTileArr.horizontal.length; f++) {
+      corridorTileArr.horizontal[f].draw();
+    }
     requestAnimationFrame(loop);
   }
 }
