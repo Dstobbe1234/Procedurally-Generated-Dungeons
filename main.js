@@ -34,12 +34,8 @@ let player = {
   angle: 0,
   draw: function () {
     ctx.fillStyle = "purple";
-    //playerAnim();
   },
 };
-
-//hi
-// Random walk - procedural dungeon generation
 
 let corridorTileArr = {
   horizontal: [],
@@ -90,22 +86,20 @@ function generateCorridors() {
     let posOrNegDistanceChange = randomInt(0, 2);
     if (vector[0] === 0) {
       console.log(y + 1 * (vector[1] * randomSegmentLength));
-      tileIterations: for (let w = 0; w < corridorTileArr.horizontal.length; w++) {
+      for (let w = 0; w < corridorTileArr.horizontal.length; w++) {
         if (
           y + 1 * (vector[1] * randomSegmentLength) > corridorTileArr.horizontal[w].y - 2 &&
           y + 1 * (vector[1] * randomSegmentLength) < corridorTileArr.horizontal[w].y + 2
         ) {
-          console.log("EEEEEE");
           for (let p = 0; p < nexSegmentLength; p++) {
-            if (x + 1 * (nextVector[0] * p) === corridorTile.horizontal[x].x) {
-              console.log("EEEEEEEEEEEE");
+            if (x + 1 * (nextVector[0] * p) === corridorTileArr.horizontal[w].x) {
               if (posOrNegDistanceChange == 1) {
                 randomSegmentLength++;
               } else {
                 randomSegmentLength--;
               }
               w = 0;
-              break tileIterations;
+              break;
             }
           }
         }
