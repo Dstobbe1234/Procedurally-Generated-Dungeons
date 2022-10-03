@@ -43,14 +43,15 @@ let corridorTileArr = {
 };
 
 class corridorTile {
-  constructor(x, y, w, h) {
+  constructor(x, y, w, h, color) {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
+    this.color = color;
   }
   draw() {
-    ctx.fillStyle = "black";
+    ctx.fillStyle = this.color;
     ctx.fillRect(this.x, this.y, this.w, this.h);
   }
 }
@@ -84,54 +85,66 @@ function generateCorridors() {
     let nexSegmentLength = randomInt(10, 50);
     console.log(randomSegmentLength);
     let posOrNegDistanceChange = randomInt(0, 2);
-    if (vector[0] === 0) {
-      console.log(y + 1 * (vector[1] * randomSegmentLength));
-      for (let w = 0; w < corridorTileArr.horizontal.length; w++) {
-        if (
-          y + 1 * (vector[1] * randomSegmentLength) > corridorTileArr.horizontal[w].y - 2 &&
-          y + 1 * (vector[1] * randomSegmentLength) < corridorTileArr.horizontal[w].y + 2
-        ) {
-          for (let p = 0; p < nexSegmentLength; p++) {
-            if (x + 1 * (nextVector[0] * p) === corridorTileArr.horizontal[w].x) {
-              if (posOrNegDistanceChange == 1) {
-                randomSegmentLength++;
-              } else {
-                randomSegmentLength--;
+    if (i === 11) {
+      console.log(vector);
+      if (vector[0] === 0) {
+        console.log(y + 1 * (vector[1] * randomSegmentLength));
+        console.log("vector should change y");
+        for (let w = 0; w < corridorTileArr.horizontal.length; w++) {
+          if (
+            y + 1 * (vector[1] * randomSegmentLength) > corridorTileArr.horizontal[w].y - 2 &&
+            y + 1 * (vector[1] * randomSegmentLength) < corridorTileArr.horizontal[w].y + 2
+          ) {
+            console.log(`vector y is in range of another horizontal segment`);
+            for (let p = 0; p < nexSegmentLength; p++) {
+              if (x + 1 * (nextVector[0] * p) === corridorTileArr.horizontal[w].x) {
+                console.log(`vector x of next vector(${nextVector}) in range of another horizontal segment`);
+                if (posOrNegDistanceChange == 1) {
+                  randomSegmentLength++;
+                } else {
+                  randomSegmentLength--;
+                }
+                w = 0;
+                break;
               }
-              w = 0;
-              break;
             }
           }
         }
-      }
-    } else {
-      for (let w = 0; w < corridorTileArr.vertical.length; w++) {
-        if (
-          x + 1 * (vector[1] * randomSegmentLength) > corridorTileArr.vertical[w].x - 2 &&
-          x + 1 * (vector[1] * randomSegmentLength) < corridorTileArr.vertical[w].x + 2
-        ) {
-          for (let p = 0; p < nexSegmentLength; p++) {
-            if (y + 1 * (nextVector[0] * p) === corridorTileArr.vertical[w].y) {
-              if (posOrNegDistanceChange == 1) {
-                randomSegmentLength++;
-              } else {
-                randomSegmentLength--;
-              }
-            }
-            w = 0;
-            break;
-          }
-        }
+        // } else {
+        //   console.log("vector should change x");
+        //   for (let w = 0; w < corridorTileArr.vertical.length; w++) {
+        //     if (
+        //       x + 1 * (vector[1] * randomSegmentLength) > corridorTileArr.vertical[w].x - 2 &&
+        //       x + 1 * (vector[1] * randomSegmentLength) < corridorTileArr.vertical[w].x + 2
+        //     ) {
+        //       for (let p = 0; p < nexSegmentLength; p++) {
+        //         if (y + 1 * (nextVector[0] * p) === corridorTileArr.vertical[w].y) {
+        //           if (posOrNegDistanceChange == 1) {
+        //             randomSegmentLength++;
+        //           } else {
+        //             randomSegmentLength--;
+        //           }
+        //         }
+        //         w = 0;
+        //         break;
+        //       }
+        //     }
+        //   }
+        // }
       }
     }
     console.log(randomSegmentLength);
     for (let m = 0; m <= randomSegmentLength; m++) {
       x += 1 * vector[0];
       y += 1 * vector[1];
-      if (vector[0] === 0) {
-        corridorTileArr.vertical.push(new corridorTile(x, y, 1, 1));
+      if (i !== 11) {
+        if (vector[0] === 0) {
+          corridorTileArr.vertical.push(new corridorTile(x, y, 1, 1, "black"));
+        } else {
+          corridorTileArr.horizontal.push(new corridorTile(x, y, 1, 1, "black"));
+        }
       } else {
-        corridorTileArr.horizontal.push(new corridorTile(x, y, 1, 1));
+        corridorTileArr.vertical.push(new corridorTile(x, y, 1, 1, "red"));
       }
     }
     previousVectorIndex = vector;
