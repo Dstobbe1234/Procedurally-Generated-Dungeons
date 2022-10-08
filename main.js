@@ -37,28 +37,25 @@ let player = {
   },
 };
 
-let corridorTileArr = {
+let corridorTiles = {
   horizontal: [],
   vertical: [],
 };
 
 class corridorTile {
-  constructor(x, y, w, h, color) {
-    this.x = x;
-    this.y = y;
+  constructor(position, w, h) {
+    this.position = position;
     this.w = w;
     this.h = h;
-    this.color = color;
   }
   draw() {
-    ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.w, this.h);
+    ctx.fillStyle = "black";
+    ctx.fillRect(this.position[0], this.position[1], this.w, this.h);
   }
 }
 
-let vector;
-let nextVector;
-let randomSegmentLength;
+let vector, nextVector, randomSegmentLength, nextSegmentLength;
+
 function generateCorridors() {
   let previousVectorIndex;
   let x = 500;
@@ -82,88 +79,68 @@ function generateCorridors() {
       vector = [0, -1];
       nextVector = vectorArr[1][randomVectorIndex];
     }
-    let nexSegmentLength = randomInt(10, 50);
-    console.log(randomSegmentLength);
-    let posOrNegDistanceChange = randomInt(0, 2);
-    if (i === 11) {
-      console.log(vector);
-      if (vector[0] === 0) {
-        console.log(y + 1 * (vector[1] * randomSegmentLength));
-        console.log("vector should change y");
-        for (let w = 0; w < corridorTileArr.horizontal.length; w++) {
-          if (
-            y + 1 * (vector[1] * randomSegmentLength) > corridorTileArr.horizontal[w].y - 2 &&
-            y + 1 * (vector[1] * randomSegmentLength) < corridorTileArr.horizontal[w].y + 2
-          ) {
-            console.log(`vector y is in range of another horizontal segment`);
-            for (let p = 0; p < nexSegmentLength; p++) {
-              if (x + 1 * (nextVector[0] * p) === corridorTileArr.horizontal[w].x) {
-                console.log(`vector x of next vector(${nextVector}) in range of another horizontal segment`);
-                if (posOrNegDistanceChange == 1) {
-                  randomSegmentLength++;
-                } else {
-                  randomSegmentLength--;
-                }
-                w = 0;
-                break;
-              }
-            }
-          }
-        }
-        // } else {
-        //   console.log("vector should change x");
-        //   for (let w = 0; w < corridorTileArr.vertical.length; w++) {
-        //     if (
-        //       x + 1 * (vector[1] * randomSegmentLength) > corridorTileArr.vertical[w].x - 2 &&
-        //       x + 1 * (vector[1] * randomSegmentLength) < corridorTileArr.vertical[w].x + 2
-        //     ) {
-        //       for (let p = 0; p < nexSegmentLength; p++) {
-        //         if (y + 1 * (nextVector[0] * p) === corridorTileArr.vertical[w].y) {
-        //           if (posOrNegDistanceChange == 1) {
-        //             randomSegmentLength++;
-        //           } else {
-        //             randomSegmentLength--;
-        //           }
-        //         }
-        //         w = 0;
-        //         break;
-        //       }
-        //     }
-        //   }
-        // }
-      }
+    nextSegmentLength = randomInt(10, 50);
+
+    if (vector[0] == 0) {
+      //vertical
+      fixCorridors([y, x], corridorTiles.horizontal, [1, 0]);
+    } else {
+      //horizontal
+      fixCorridors([x, y], corridorTiles.vertical, [0, 1]);
     }
-    console.log(randomSegmentLength);
+
     for (let m = 0; m <= randomSegmentLength; m++) {
+      console.log("test");
       x += 1 * vector[0];
       y += 1 * vector[1];
-      if (i !== 11) {
-        if (vector[0] === 0) {
-          corridorTileArr.vertical.push(new corridorTile(x, y, 1, 1, "black"));
-        } else {
-          corridorTileArr.horizontal.push(new corridorTile(x, y, 1, 1, "black"));
-        }
+      if (vector[0] === 0) {
+        corridorTiles.vertical.push(new corridorTile([x, y], 1, 1));
       } else {
-        corridorTileArr.vertical.push(new corridorTile(x, y, 1, 1, "red"));
+        corridorTiles.horizontal.push(new corridorTile([x, y], 1, 1));
       }
     }
     previousVectorIndex = vector;
     vector = nextVector;
-    randomSegmentLength = nexSegmentLength;
-    requestAnimationFrame(loop);
-  }
-
-  function loop() {
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, cnv.width, cnv.height);
-    for (let i = 0; i < corridorTileArr.vertical.length; i++) {
-      corridorTileArr.vertical[i].draw();
-    }
-    for (let f = 0; f < corridorTileArr.horizontal.length; f++) {
-      corridorTileArr.horizontal[f].draw();
-    }
-    requestAnimationFrame(loop);
+    randomSegmentLength = nextSegmentLength;
   }
 }
 
+function fixCorridors(pos, segmentOrientation, segmentPos) {
+  let posOrNegDistanceChange = randomInt(0, 2);
+  for (let w = 0; w < segmentOrientation.length; w++) {
+    if (
+      // If the new hallway segment that is being made is horizontal:
+      //checks to see if the x of the last pixel of the current segment is in range (in between +2 and -2) of any other horizontal hallway segment
+      //Does opposite for vertical
+      pos[0] + 1 * (vector[segmentPos[0]] * randomSegmentLength) > segmentOrientation[w].position[segmentPos[0]] - 2 &&
+      pos[0] + 1 * (vector[segmentPos[0]] * randomSegmentLength) < segmentOrientation[w].position[segmentPos[0]] + 2
+    ) {
+      for (let p = 0; p < nextSegmentLength; p++) {
+        if (pos[1] + 1 * (nextVector[segmentPos[1]] * p) === segmentOrientation[w].position[segmentPos[1]]) {
+          if (posOrNegDistanceChange == 1) {
+            randomSegmentLength++;
+          } else {
+            randomSegmentLength--;
+          }
+          w = 0;
+          break;
+        }
+      }
+    }
+  }
+}
+
+function loop() {
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, cnv.width, cnv.height);
+  for (let i = 0; i < corridorTiles.vertical.length; i++) {
+    corridorTiles.vertical[i].draw();
+  }
+  for (let f = 0; f < corridorTiles.horizontal.length; f++) {
+    corridorTiles.horizontal[f].draw();
+  }
+  requestAnimationFrame(loop);
+}
+
 generateCorridors();
+requestAnimationFrame(loop);
