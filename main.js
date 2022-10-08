@@ -7,6 +7,8 @@ document.addEventListener("mousedown", mousedownListener);
 document.addEventListener("mouseup", mouseupListener);
 document.addEventListener("mousemove", mousemoveListener);
 
+let size = 1;
+
 let mouse = {
   x: 0,
   y: 0,
@@ -43,14 +45,13 @@ let corridorTiles = {
 };
 
 class corridorTile {
-  constructor(position, w, h) {
+  constructor(position) {
     this.position = position;
-    this.w = w;
-    this.h = h;
   }
   draw() {
     ctx.fillStyle = "black";
-    ctx.fillRect(this.position[0], this.position[1], this.w, this.h);
+    ctx.fillRect(this.position[0], this.position[1], size, size);
+    // console.log(this.position[1]);
   }
 }
 
@@ -91,16 +92,15 @@ function generateCorridors() {
     }
 
     for (let m = 0; m <= randomSegmentLength; m++) {
-      console.log("test");
       currentPos[0] += 1 * vector[0];
       currentPos[1] += 1 * vector[1];
       if (vector[0] === 0) {
         corridorTiles.vertical[corridorTiles.vertical.length - 1].push(
-          new corridorTile(currentPos, 1, 1)
+          new corridorTile(currentPos)
         );
       } else {
         corridorTiles.horizontal[corridorTiles.horizontal.length - 1].push(
-          new corridorTile(currentPos, 1, 1)
+          new corridorTile(currentPos)
         );
       }
     }
@@ -109,14 +109,15 @@ function generateCorridors() {
     randomSegmentLength = nextSegmentLength;
   }
 }
+
 function fixCorridors(segmentOrientation, pos) {
   let posOrNegDistanceChange = randomInt(0, 2);
   let finalPixel = [currentPos[pos[0]] + 1 * (vector[pos[0]] * randomSegmentLength), currentPos[1]];
   for (let w = 0; w < segmentOrientation.length; w++) {
     if (
       // If the new hallway segment that is being made is horizontal:
-      //checks to see if the x position of the last pixel of the current segment is in range (in between +2 and -2) of any vertical hallway segment x position
-      //Does opposite for vertical
+      // checks to see if the x position of the last pixel of the current segment is in range (in between +2 and -2) of any vertical hallway segment x position
+      // Does opposite for vertical
       finalPixel[0] > segmentOrientation[w][0].position[pos[0]] - 2 &&
       finalPixel[0] < segmentOrientation[w][0].position[pos[0]] + 2
     ) {
