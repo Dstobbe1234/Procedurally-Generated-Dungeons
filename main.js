@@ -55,11 +55,10 @@ class corridorTile {
 }
 
 let vector, nextVector, randomSegmentLength, nextSegmentLength;
+let currentPos = [500, 500];
 
 function generateCorridors() {
   let previousVectorIndex;
-  let x = 500;
-  let y = 500;
   for (let i = 1; i <= 21; i++) {
     let vectorArr = [
       [
@@ -83,20 +82,26 @@ function generateCorridors() {
 
     if (vector[0] == 0) {
       //vertical
-      fixCorridors([y, x], corridorTiles.horizontal, [1, 0]);
+      fixCorridors(corridorTiles.horizontal, [1, 0]);
+      corridorTiles.vertical.push([]);
     } else {
       //horizontal
-      fixCorridors([x, y], corridorTiles.vertical, [0, 1]);
+      fixCorridors(corridorTiles.vertical, [0, 1]);
+      corridorTiles.horizontal.push([]);
     }
 
     for (let m = 0; m <= randomSegmentLength; m++) {
       console.log("test");
-      x += 1 * vector[0];
-      y += 1 * vector[1];
+      currentPos[0] += 1 * vector[0];
+      currentPos[1] += 1 * vector[1];
       if (vector[0] === 0) {
-        corridorTiles.vertical.push(new corridorTile([x, y], 1, 1));
+        corridorTiles.vertical[corridorTiles.vertical.length - 1].push(
+          new corridorTile(currentPos, 1, 1)
+        );
       } else {
-        corridorTiles.horizontal.push(new corridorTile([x, y], 1, 1));
+        corridorTiles.horizontal[corridorTiles.horizontal.length - 1].push(
+          new corridorTile(currentPos, 1, 1)
+        );
       }
     }
     previousVectorIndex = vector;
@@ -104,18 +109,29 @@ function generateCorridors() {
     randomSegmentLength = nextSegmentLength;
   }
 }
-function fixCorridors(pos, segmentOrientation, segmentPos) {
+function fixCorridors(segmentOrientation, pos) {
   let posOrNegDistanceChange = randomInt(0, 2);
+  let finalPixel = [currentPos[pos[0]] + 1 * (vector[pos[0]] * randomSegmentLength), currentPos[1]];
   for (let w = 0; w < segmentOrientation.length; w++) {
     if (
       // If the new hallway segment that is being made is horizontal:
-      //checks to see if the x of the last pixel of the current segment is in range (in between +2 and -2) of any other horizontal hallway segment
+      //checks to see if the x position of the last pixel of the current segment is in range (in between +2 and -2) of any vertical hallway segment x position
       //Does opposite for vertical
-      pos[0] + 1 * (vector[segmentPos[0]] * randomSegmentLength) > segmentOrientation[w].position[segmentPos[0]] - 2 &&
-      pos[0] + 1 * (vector[segmentPos[0]] * randomSegmentLength) < segmentOrientation[w].position[segmentPos[0]] + 2
+      finalPixel[0] > segmentOrientation[w][0].position[pos[0]] - 2 &&
+      finalPixel[0] < segmentOrientation[w][0].position[pos[0]] + 2
     ) {
-      for (let p = 0; p < nextSegmentLength; p++) {
-        if (pos[1] + 1 * (nextVector[segmentPos[1]] * p) === segmentOrientation[w].position[segmentPos[1]]) {
+      let segmentPos = [];
+      for (let index = 0; index < segmentOrientation[w].length; index++) {
+        segmentPos.push(segmentOrientation[w][index].position[pos[1]]);
+      }
+
+      let nextSegmentPos = [];
+      for (let e = 0; e < nextSegmentLength; e++) {
+        nextSegmentPos.push(finalPixel[1] + 1 * (nextVector[pos[1]] * e));
+      }
+
+      for (let x = 0; x < segmentPos; x++) {
+        if (nextSegmentPos.includes(segmentPos[x])) {
           if (posOrNegDistanceChange == 1) {
             randomSegmentLength++;
           } else {
@@ -127,16 +143,36 @@ function fixCorridors(pos, segmentOrientation, segmentPos) {
       }
     }
   }
+  //       for (let p = 0; p < nextSegmentLength; p++) {
+  //         if (
+  //           finalPixel[1] + 1 * (nextVector[pos[1]] * p) ===
+  //           segmentOrientation[w].position[pos[1]]
+  //         ) {
+  //           if (posOrNegDistanceChange == 1) {
+  //             randomSegmentLength++;
+  //           } else {
+  //             randomSegmentLength--;
+  //           }
+  //           w = 0;
+  //           break;
+  //         }
+  //       }
+  //     }
+  //   }
 }
 
 function loop() {
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, cnv.width, cnv.height);
   for (let i = 0; i < corridorTiles.vertical.length; i++) {
-    corridorTiles.vertical[i].draw();
+    for (let m = 0; m < corridorTiles.vertical[i].length; m++) {
+      corridorTiles.vertical[i][m].draw();
+    }
   }
   for (let f = 0; f < corridorTiles.horizontal.length; f++) {
-    corridorTiles.horizontal[f].draw();
+    for (let b = 0; b < corridorTiles.horizontal[f].length; b++) {
+      corridorTiles.horizontal[f][b].draw();
+    }
   }
   requestAnimationFrame(loop);
 }
