@@ -104,7 +104,6 @@ function generateCorridors() {
     randomSegmentLength = nextSegmentLength;
   }
 }
-
 function fixCorridors(pos, segmentOrientation, segmentPos) {
   let posOrNegDistanceChange = randomInt(0, 2);
   for (let w = 0; w < segmentOrientation.length; w++) {
