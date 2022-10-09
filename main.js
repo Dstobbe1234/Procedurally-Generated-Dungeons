@@ -148,6 +148,7 @@ function fixCorridors(segmentOrientation, pos) {
     }
   }
 }
+//hi
 
 function loop() {
   ctx.fillStyle = "white";
