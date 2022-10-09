@@ -93,7 +93,7 @@ function generateCorridors() {
       nextVector = vectorArr[1][randomVectorIndex];
     }
     nextSegmentLength = randomInt(10, 50);
-
+    //hi
     if (vector[0] == 0) {
       //vertical
       fixCorridors(corridorTiles.horizontal, [1, 0]);
