@@ -7,7 +7,8 @@ document.addEventListener("mousedown", mousedownListener);
 document.addEventListener("mouseup", mouseupListener);
 document.addEventListener("mousemove", mousemoveListener);
 
-let size = 1;
+const size = 1;
+const segmentNum = 21;
 let allTiles;
 
 let mouse = {
@@ -46,22 +47,26 @@ let corridorTiles = {
 };
 
 class corridorTile {
-  constructor(position) {
+  constructor(position, color) {
     this.position = position;
+    this.color = color;
   }
+
   draw() {
-    ctx.fillStyle = "black";
+    ctx.fillStyle = this.color;
     ctx.fillRect(this.position[0], this.position[1], size, size);
-    // console.log(this.position[1]);
   }
 }
 
-let vector, nextVector, randomSegmentLength, nextSegmentLength;
-let currentPos = [500, 500];
+let testingArray = [];
 
+let vector, nextVector, currentSegmentLength, nextSegmentLength;
+let currentPos = [500, 500];
+let equal = false;
+let color = "black";
 function generateCorridors() {
   let previousVectorIndex;
-  for (let i = 1; i <= 21; i++) {
+  for (let i = 0; i < segmentNum; i++) {
     let vectorArr = [
       [
         [0, -1],
@@ -72,11 +77,18 @@ function generateCorridors() {
         [1, 0],
       ],
     ];
+    if (equal) {
+      color = "red";
+      equal = false;
+    } else {
+      color = "black";
+    }
+
     let randomVectorIndex = randomInt(0, 2);
-    if (i !== 1 && i !== 21) {
+    if (i !== 0 && i !== segmentNum - 1) {
       nextVector = vectorArr.splice(previousVectorIndex[0], 1)[0][randomVectorIndex];
     } else {
-      randomSegmentLength = randomInt(10, 50);
+      currentSegmentLength = randomInt(10, 50);
       vector = [0, -1];
       nextVector = vectorArr[1][randomVectorIndex];
     }
@@ -92,39 +104,38 @@ function generateCorridors() {
       corridorTiles.horizontal.push([]);
     }
 
-    for (let m = 0; m <= randomSegmentLength; m++) {
+    for (let m = 0; m <= currentSegmentLength; m++) {
       currentPos[0] += vector[0];
       currentPos[1] += vector[1];
-
       if (vector[0] === 0) {
         corridorTiles.vertical[corridorTiles.vertical.length - 1].push(
-          new corridorTile([currentPos[0], currentPos[1]])
+          new corridorTile([currentPos[0], currentPos[1]], color)
         );
       } else {
         corridorTiles.horizontal[corridorTiles.horizontal.length - 1].push(
-          new corridorTile([currentPos[0], currentPos[1]])
+          new corridorTile([currentPos[0], currentPos[1]], color)
         );
       }
     }
     previousVectorIndex = vector;
     vector = nextVector;
-    randomSegmentLength = nextSegmentLength;
+    currentSegmentLength = nextSegmentLength;
+
+    testingArray.push({ vector: vector, length: currentSegmentLength });
   }
   allTiles = corridorTiles.vertical.flat(1).concat(corridorTiles.horizontal.flat(1));
 }
 
+console.log(testingArray);
+
 function fixCorridors(segmentOrientation, pos) {
   let posOrNegDistanceChange = randomInt(0, 2);
-
-  for (let w = 0; w < segmentOrientation.length; w++) {
+  firstLoop: for (let w = 0; w < segmentOrientation.length; w++) {
     const segmentTile1 = segmentOrientation[w][0].position[pos[0]];
-
-    const segmentLength = vector[pos[0]] * randomSegmentLength;
+    const segmentLength = vector[pos[0]] * currentSegmentLength;
     const finalPixel = [currentPos[pos[0]] + segmentLength, currentPos[pos[1]]];
 
-    console.log(finalPixel[0], segmentTile1);
-
-    if (finalPixel[0] > segmentTile1 - 2 && finalPixel[0] < segmentTile1 + 2) {
+    if (finalPixel[0] > segmentTile1 - 5 && finalPixel[0] < segmentTile1 + 5) {
       let segmentPos = [];
       for (let index = 0; index < segmentOrientation[w].length; index++) {
         segmentPos.push(segmentOrientation[w][index].position[pos[1]]);
@@ -135,20 +146,19 @@ function fixCorridors(segmentOrientation, pos) {
       }
       for (let x = 0; x < nextSegmentPos.length; x++) {
         if (segmentPos.includes(nextSegmentPos[x])) {
-          console.log("equal");
-          if (posOrNegDistanceChange == 1) {
-            randomSegmentLength++;
-          } else {
-            randomSegmentLength--;
-          }
-          w = 0;
-          break;
+          equal = true;
+          // if (posOrNegDistanceChange == 1) {
+          //   currentSegmentLength++;
+          // } else {
+          //   currentSegmentLength--;
+          // }
+          // w = 0;
+          break firstLoop;
         }
       }
     }
   }
 }
-//hi
 
 function loop() {
   ctx.fillStyle = "white";
