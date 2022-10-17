@@ -47,18 +47,14 @@ let corridorTiles = {
 };
 
 class corridorTile {
-  constructor(position, color, img) {
+  constructor(position, color) {
     this.position = position;
     this.color = color;
-    this.img = img;
   }
 
   draw() {
     ctx.fillStyle = this.color;
     ctx.fillRect(this.position[0], this.position[1], size, size);
-    let dungeonTileSetImg = document.getElementById("dungeonTileSetPng");
-    // ctx.drawImage(dungeonTileSetImg, this.img[0][0], this.img[0][1], this.img[0][2], this.img[0][3], this.img[0][4], this.img[0][5], 15, 15)
-    // ctx.drawImage(dungeonTileSetImg, this.img[1][0], this.img[1][1], this.img[1][2], this.img[1][3], this.img[1][4], this.img[1][5], 15, 15)
   }
 }
 
@@ -111,14 +107,13 @@ function generateCorridors() {
     for (let m = 0; m <= currentSegmentLength; m++) {
       currentPos[0] += vector[0];
       currentPos[1] += vector[1];
-      let tileImg = assignImages(vector, m, currentSegmentLength, currentPos)
       if (vector[0] === 0) {
         corridorTiles.vertical[corridorTiles.vertical.length - 1].push(
-          new corridorTile([currentPos[0], currentPos[1]], color, tileImg)
+          new corridorTile([currentPos[0], currentPos[1]], color)
         );
       } else {
         corridorTiles.horizontal[corridorTiles.horizontal.length - 1].push(
-          new corridorTile([currentPos[0], currentPos[1]], color, tileImg)
+          new corridorTile([currentPos[0], currentPos[1]], color)
         );
       }
     }
@@ -134,9 +129,9 @@ function generateCorridors() {
 console.log(testingArray);
 
 function fixCorridors(segmentOrientation, pos) {
-  let posOrNegDistanceChange = randomInt(0, 2);
   firstLoop: for (let w = 0; w < segmentOrientation.length; w++) {
     const segmentTile1 = segmentOrientation[w][0].position[pos[0]];
+    //vector[pos[0]] is either 1 or -1
     const segmentLength = vector[pos[0]] * currentSegmentLength;
     const finalPixel = [currentPos[pos[0]] + segmentLength, currentPos[pos[1]]];
 
@@ -152,27 +147,16 @@ function fixCorridors(segmentOrientation, pos) {
       for (let x = 0; x < nextSegmentPos.length; x++) {
         if (segmentPos.includes(nextSegmentPos[x])) {
           equal = true;
-          // if (posOrNegDistanceChange == 1) {
-          //   currentSegmentLength++;
-          // } else {
-          //   currentSegmentLength--;
-          // }
-          // w = 0;
+          console.log(finalPixel[0], segmentTile1)
+          console.log(finalPixel[0] - segmentTile1 - 1)
+          console.log(currentSegmentLength)
+          currentSegmentLength += (finalPixel[0] - segmentTile1)
+          console.log(currentSegmentLength)
           break firstLoop;
         }
       }
     }
   }
-}
-
-function assignImages(vector, pos, segmentLength) {
-  if(pos < segmentLength)
-    if(vector[0] === 0) {
-      return [[0, 0, 15, 15, currentPos[0] - 15, currentPos[1]], [0, 0, 15, 15, currentPos[0] + 15, currentPos[1]]]
-    } else {
-      return [[15, 0, 15, 15, currentPos[0], currentPos[1]] - 15, [0, 0, 15, 15, currentPos[0], currentPos[1]] + 15]
-    }
-
 }
 
 function loop() {
@@ -181,7 +165,6 @@ function loop() {
   for (let i = 0; i < allTiles.length; i++) {
     allTiles[i].draw();
   }
-  assignImages()
   requestAnimationFrame(loop);
 }
 
