@@ -121,12 +121,12 @@ function generateCorridors() {
     vector = nextVector;
     currentSegmentLength = nextSegmentLength;
 
-    testingArray.push({ vector: vector, length: currentSegmentLength });
+    //testingArray.push({ vector: vector, length: currentSegmentLength });
   }
   allTiles = corridorTiles.vertical.flat(1).concat(corridorTiles.horizontal.flat(1));
 }
 
-console.log(testingArray);
+//console.log(testingArray);
 
 function fixCorridors(segmentOrientation, pos) {
   firstLoop: for (let w = 0; w < segmentOrientation.length; w++) {
@@ -148,9 +148,9 @@ function fixCorridors(segmentOrientation, pos) {
         if (segmentPos.includes(nextSegmentPos[x])) {
           equal = true;
           console.log(finalPixel[0], segmentTile1)
-          console.log(finalPixel[0] - segmentTile1 - 1)
+          console.log(segmentTile1 - finalPixel[0])
           console.log(currentSegmentLength)
-          currentSegmentLength += (finalPixel[0] - segmentTile1)
+          currentSegmentLength += (segmentTile1 - finalPixel[0])
           console.log(currentSegmentLength)
           break firstLoop;
         }
@@ -165,6 +165,8 @@ function loop() {
   for (let i = 0; i < allTiles.length; i++) {
     allTiles[i].draw();
   }
+  ctx.strokeStyle = "green"
+  ctx.strokeRect(mouse.x - 7, mouse.y - 7, 5, 5)
   requestAnimationFrame(loop);
 }
 
