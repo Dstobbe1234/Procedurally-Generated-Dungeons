@@ -40,7 +40,7 @@ function mousedownListener() {
 function mouseupListener() {
   mouse.down = false;
 }
-
+//test
 function mousemoveListener(event) {
   mouse.x = event.x - cnv.getBoundingClientRect().x;
   mouse.y = event.y - cnv.getBoundingClientRect().y;
