@@ -144,7 +144,7 @@ function generateCorridors() {
     vector = nextVector;
     currentSegmentLength = nextSegmentLength;
 
-    testingArray.push({ vector: vector, length: currentSegmentLength });
+    //testingArray.push({ vector: vector, length: currentSegmentLength });
   }
   allTiles = corridorTiles.vertical
     .flat(1)
@@ -152,7 +152,7 @@ function generateCorridors() {
   fixDuplicates();
 }
 
-console.log(testingArray);
+//console.log(testingArray);
 
 function fixCorridors(segmentOrientation, pos) {
   firstLoop: for (let w = 0; w < segmentOrientation.length; w++) {
