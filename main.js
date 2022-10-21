@@ -11,7 +11,6 @@ document.addEventListener("keydown", keydownListener);
 let playerDisplacement = [0, 0];
 
 function keydownListener(event) {
-  console.log(event.key);
   if (event.key === "w") {
     playerDisplacement[1] -= 50;
   } else if (event.key === "s") {
@@ -63,13 +62,12 @@ let corridorTiles = {
 };
 
 class corridorTile {
-  constructor(position, color) {
+  constructor(position) {
     this.position = position;
-    this.color = color;
   }
 
   draw() {
-    ctx.fillStyle = this.color;
+    ctx.fillStyle = "black";
     ctx.fillRect(
       this.position[0] + playerDisplacement[0],
       this.position[1] + playerDisplacement[1],
@@ -79,12 +77,9 @@ class corridorTile {
   }
 }
 
-let testingArray = [];
-
 let vector, nextVector, currentSegmentLength, nextSegmentLength;
 let currentPos = [500, 500];
 let equal = false;
-let color = "black";
 function generateCorridors() {
   let previousVectorIndex;
   for (let i = 0; i < segmentNum; i++) {
@@ -98,32 +93,27 @@ function generateCorridors() {
         [1, 0],
       ],
     ];
-    if (equal) {
-      color = "red";
-      equal = false;
-    } else {
-      color = "black";
-    }
 
     let randomVectorIndex = randomInt(0, 2);
-    if (i !== 0 && i !== segmentNum - 1) {
-      nextVector = vectorArr.splice(previousVectorIndex[0], 1)[0][
-        randomVectorIndex
-      ];
-    } else {
+    if (i == 0) {
       currentSegmentLength = randomInt(10, 50);
       vector = [0, -1];
       nextVector = vectorArr[1][randomVectorIndex];
+    } else if (i == segmentNum - 1) {
+      nextVector = [0, 0];
+      vector = [0, -1];
+    } else {
+      nextVector = vectorArr.splice(previousVectorIndex[0], 1)[0][randomVectorIndex];
     }
     nextSegmentLength = randomInt(10, 50);
 
     if (vector[0] == 0) {
       //vertical
-      fixCorridors(corridorTiles.horizontal, [1, 0]);
+      fixCorridors(corridorTiles.horizontal, [1, 0], i);
       corridorTiles.vertical.push([]);
     } else {
       //horizontal
-      fixCorridors(corridorTiles.vertical, [0, 1]);
+      fixCorridors(corridorTiles.vertical, [0, 1], i);
       corridorTiles.horizontal.push([]);
     }
 
@@ -132,67 +122,64 @@ function generateCorridors() {
       currentPos[1] += vector[1];
       if (vector[0] === 0) {
         corridorTiles.vertical[corridorTiles.vertical.length - 1].push(
-          new corridorTile([currentPos[0], currentPos[1]], color)
+          new corridorTile([currentPos[0], currentPos[1]])
         );
       } else {
         corridorTiles.horizontal[corridorTiles.horizontal.length - 1].push(
-          new corridorTile([currentPos[0], currentPos[1]], color)
+          new corridorTile([currentPos[0], currentPos[1]])
         );
       }
     }
     previousVectorIndex = vector;
     vector = nextVector;
     currentSegmentLength = nextSegmentLength;
-
-    //testingArray.push({ vector: vector, length: currentSegmentLength });
   }
-  allTiles = corridorTiles.vertical
-    .flat(1)
-    .concat(corridorTiles.horizontal.flat(1));
+  allTiles = corridorTiles.vertical.flat(1).concat(corridorTiles.horizontal.flat(1));
   fixDuplicates();
 }
 
-//console.log(testingArray);
+function fixCorridors(segmentOrientation, pos, segmentIndex) {
+  let posOrNeg = [-5, 5][randomInt(0, 2)];
 
-function fixCorridors(segmentOrientation, pos) {
   firstLoop: for (let w = 0; w < segmentOrientation.length; w++) {
     const segmentTile1 = segmentOrientation[w][0].position[pos[0]];
     //vector[pos[0]] is either 1 or -1
     const segmentLength = vector[pos[0]] * currentSegmentLength;
     let finalPixel = [currentPos[pos[0]] + segmentLength, currentPos[pos[1]]];
 
-    if (finalPixel[0] > segmentTile1 - 5 && finalPixel[0] < segmentTile1 + 5) {
+    if (finalPixel[0] >= segmentTile1 - 5 && finalPixel[0] <= segmentTile1 + 5) {
       let segmentPos = [];
-      for (let index = 0; index < segmentOrientation[w].length; index++) {
-        segmentPos.push(segmentOrientation[w][index].position[pos[1]]);
-      }
-      let nextSegmentPos = [];
-      for (let e = 0; e < nextSegmentLength; e++) {
-        nextSegmentPos.push(finalPixel[1] + nextVector[pos[1]] * e);
-      }
-      for (let x = 0; x < nextSegmentPos.length; x++) {
-        if (segmentPos.includes(nextSegmentPos[x])) {
-          equal = true;
-          let diff = segmentTile1 - finalPixel[0];
-          console.log(diff);
-          console.log(`vector = ${vector[pos[0]]}`);
-          console.log(segmentTile1);
-          console.log(finalPixel[0]);
-          console.log(vector[pos[0]] * diff);
-          if (vector[pos[0]] > 0) {
-            currentSegmentLength += diff;
-          } else {
-            currentSegmentLength -= diff;
-          }
-          finalPixel = [
-            currentPos[pos[0]] + vector[pos[0]] * currentSegmentLength,
-            currentPos[pos[1]],
-          ];
-          console.log(finalPixel[0]);
-          console.log("next");
 
-          break firstLoop;
+      if (segmentIndex !== segmentNum - 1) {
+        for (let index = 0; index < segmentOrientation[w].length; index++) {
+          segmentPos.push(segmentOrientation[w][index].position[pos[1]]);
         }
+        let nextSegmentPos = [];
+        for (let e = 0; e < nextSegmentLength; e++) {
+          nextSegmentPos.push(finalPixel[1] + nextVector[pos[1]] * e);
+        }
+
+        for (let x = 0; x < nextSegmentPos.length; x++) {
+          if (segmentPos.includes(nextSegmentPos[x])) {
+            equal = true;
+            let diff = segmentTile1 - finalPixel[0];
+            if (vector[pos[0]] > 0) {
+              currentSegmentLength += diff;
+            } else {
+              currentSegmentLength -= diff;
+            }
+            finalPixel = [
+              currentPos[pos[0]] + vector[pos[0]] * currentSegmentLength,
+              currentPos[pos[1]],
+            ];
+
+            break firstLoop;
+          }
+        }
+      } else {
+        console.log(posOrNeg);
+        currentSegmentLength += posOrNeg;
+        w = 0;
       }
     }
   }
@@ -207,12 +194,9 @@ function fixDuplicates() {
   for (let i = 0; i < testArr.length; i++) {
     let duplicatesOfi = testArr.filter(
       (coord) =>
-        coord[0] === testArr[i][0] &&
-        coord[1] === testArr[i][1] &&
-        testArr.indexOf(coord) !== i
+        coord[0] === testArr[i][0] && coord[1] === testArr[i][1] && testArr.indexOf(coord) !== i
     );
     if (duplicatesOfi.length !== 0) {
-      console.log(`duplicated: ${duplicatesOfi}`);
       testArr.splice(i, 1);
       allTiles.splice(i, 1);
     }
@@ -225,12 +209,10 @@ function loop() {
   for (let i = 0; i < allTiles.length; i++) {
     allTiles[i].draw();
   }
-  corridorImg = document.getElementById("dungeonTileSetPng");
-  ctx.drawImage(corridorImg, 0, 17, 96, 48, 400, 400, 48, 48);
-  ctx.drawImage(corridorImg, 0, 17, 96, 48, 400, 446, 48, 48);
-  ctx.drawImage(corridorImg, 9, 0, 7, 16, 300, 300, 7, 16);
-  ctx.strokeStyle = "green";
-  ctx.strokeRect(mouse.x - 7, mouse.y - 7, 5, 5);
+  if (mouse.down) {
+    ctx.strokeStyle = "blue";
+    ctx.strokeRect(mouse.x - 7, mouse.y - 7, 5, 5);
+  }
   requestAnimationFrame(loop);
 }
 
