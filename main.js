@@ -6,6 +6,7 @@ cnv.height = 1000;
 let hallwaysPng = document.getElementById("hallwaysPng");
 
 // 440 x 440
+//test
 
 document.addEventListener("mousedown", mousedownListener);
 document.addEventListener("mouseup", mouseupListener);
