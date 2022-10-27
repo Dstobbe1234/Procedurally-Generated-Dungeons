@@ -68,14 +68,14 @@ let corridorTiles = {
 };
 
 class corridorTile {
-  constructor(position, imageCoords, order) {
+  constructor(position, imageCoords, v) {
     this.position = position;
     this.imageCoords = imageCoords;
-    this.order = order
+    this.corner = false;
+    this.v = v
   }
 
   draw() {
-    ctx.fillStyle = "black";
     ctx.drawImage(
       hallwaysPng,
       this.imageCoords[0],
@@ -83,7 +83,9 @@ class corridorTile {
       this.imageCoords[2],
       this.imageCoords[3],
       this.position[0] + playerDisplacement[0],
-      this.position[1] + playerDisplacement[1], size, size
+      this.position[1] + playerDisplacement[1], 
+      size, 
+      size
     );
   }
 }
@@ -119,9 +121,7 @@ function generateCorridors() {
         randomVectorIndex
       ];
     }
-    console.log(i)
     nextSegmentLength = randomInt(lengthRange[0], lengthRange[1]);
-    console.log(currentSegmentLength)
 
     if (vector[0] == 0) {
       //vertical
@@ -132,22 +132,26 @@ function generateCorridors() {
       fixCorridors(corridorTiles.vertical, [0, 1], i);
       corridorTiles.horizontal.push([]);
     }
-    console.log("new")
-    console.log(currentSegmentLength)
-    for (let m = 0; m < currentSegmentLength; m++) {
-      currentPos[0] += size * vector[0];
-      currentPos[1] += size * vector[1];
+    for (let m = 0; m < currentSegmentLength * 2; m++) {
+        currentPos[0] = currentPos[0] + size * vector[0];
+        currentPos[1] = currentPos[1] + size * vector[1];
       let img = assignImages(m, currentSegmentLength);
-      console.log(img);
       if (vector[0] === 0) {
         corridorTiles.vertical[corridorTiles.vertical.length - 1].push(
-          new corridorTile([currentPos[0], currentPos[1]], img, m)
+          new corridorTile([currentPos[0], currentPos[1]], img, vector)
         );
+        if(m == currentSegmentLength * 2 - 1) {
+            corridorTiles.vertical[corridorTiles.vertical].corner = true
+        }
       } else {
         corridorTiles.horizontal[corridorTiles.horizontal.length - 1].push(
-          new corridorTile([currentPos[0], currentPos[1]], img, m)
+          new corridorTile([currentPos[0], currentPos[1]], img, vector)
         );
       }
+      if(m == currentSegmentLength * 2 - 1) {
+        corridorTiles.horizontal[corridorTiles.horizontal].corner = true
+      }
+
     }
     previousVectorIndex = vector;
     vector = nextVector;
@@ -157,54 +161,69 @@ function generateCorridors() {
     .flat(1)
     .concat(corridorTiles.horizontal.flat(1));
   fixDuplicates();
+  corners()
 }
 
 function fixCorridors(segmentOrientation, pos, segmentIndex) {
-  let posOrNeg = [-1, 1][randomInt(0, 2)];
-  firstLoop: for (let w = 0; w < segmentOrientation.length; w++) {
-    const segmentTile1 = segmentOrientation[w][0].position[pos[0]];
-    //vector[pos[0]] is either 1 or -1
-    const segmentLength =
-      size * (vector[pos[0]] * currentSegmentLength);
-    let finalPixel = [currentPos[pos[0]] + segmentLength, currentPos[pos[1]]];
+  // let posOrNeg = [-1, 1][randomInt(0, 2)];
+  // firstLoop: for (let w = 0; w < segmentOrientation.length; w++) {
+  //   const segmentTile1 = segmentOrientation[w][0].position[pos[0]];
+  //   //vector[pos[0]] is either 1 or -1
+  //   const segmentLength =
+  //     size * (vector[pos[0]] * currentSegmentLength);
+  //   let finalPixel = [currentPos[pos[0]] + segmentLength, currentPos[pos[1]]];
 
-    if (
-      finalPixel[0] >= segmentTile1 - 440 &&
-      finalPixel[0] <= segmentTile1 + 440
-    ) {
-      let segmentPos = [];
+  //   if (
+  //     finalPixel[0] >= segmentTile1 - 440 &&
+  //     finalPixel[0] <= segmentTile1 + 440
+  //   ) {
+  //     let segmentPos = [];
 
-      if (segmentIndex !== segmentNum - 1) {
-        for (let index = 0; index < segmentOrientation[w].length; index++) {
-          segmentPos.push(segmentOrientation[w][index].position[pos[1]]);
-        }
-        let nextSegmentPos = [];
-        for (let e = 0; e < nextSegmentLength; e++) {
-          nextSegmentPos.push(
-            finalPixel[1] + size * (nextVector[pos[1]] * e)
-          );
-        }
+  //     if (segmentIndex !== segmentNum - 1) {
+  //       for (let index = 0; index < segmentOrientation[w].length; index++) {
+  //         segmentPos.push(segmentOrientation[w][index].position[pos[1]]);
+  //       }
+  //       let nextSegmentPos = [];
+  //       for (let e = 0; e < nextSegmentLength; e++) {
+  //         nextSegmentPos.push(
+  //           finalPixel[1] + size * (nextVector[pos[1]] * e)
+  //         );
+  //       }
 
-        for (let x = 0; x < nextSegmentPos.length; x++) {
-          if (segmentPos.includes(nextSegmentPos[x])) {
-            equal = true;
-            let diff = segmentTile1 - finalPixel[0];
-            console.log(diff)
-            console.log(diff / size)
-            if (vector[pos[0]] > 0) {
-              currentSegmentLength += (diff / size);
-            } else {
-              currentSegmentLength -= (diff / size);
-            }
+  //       for (let x = 0; x < nextSegmentPos.length; x++) {
+  //         if (segmentPos.includes(nextSegmentPos[x])) {
+  //           equal = true;
+  //           let diff = segmentTile1 - finalPixel[0];
+  //           console.log(diff)
+  //           console.log(diff / size)
+  //           if (vector[pos[0]] > 0) {
+  //             currentSegmentLength += (diff / size);
+  //           } else {
+  //             currentSegmentLength -= (diff / size);
+  //           }
 
-            break firstLoop;
-          }
-        }
-      } else {
-        currentSegmentLength += posOrNeg;
-        w = 0;
-      }
-    }
+  //           break firstLoop;
+  //         }
+  //       }
+  //     } else {
+  //       currentSegmentLength += posOrNeg;
+  //       w = 0;
+  //     }
+  //   }
+  // }
+}
+
+function corners() {
+  console.log("hui")
+  for(let i = 0; i < allTiles.length; i++) {
+    console.log("sfg")
+    if(allTiles[i].corner) {
+      console.log("corner")
+      if(JSON.stringify(allTiles[i].v) === '[0,-1]' && JSON.stringify(allTiles[i + 1].v) === '[1,0]') {
+        console.log("EEEEE")
+        allTiles[i].imageCoords = [440, 0, 440, 440]
+      } 
+    } 
   }
 }
 
@@ -222,7 +241,6 @@ function fixDuplicates() {
         testArr.indexOf(coord) !== i
     );
     if (duplicatesOfi.length !== 0) {
-      //Do corners here
       testArr.splice(i, 1);
       allTiles.splice(i, 1);
     }
@@ -237,46 +255,48 @@ function assignImages(index, length) {
   //bottom left corner Img =  435, 435, 435, 435
   //bottom right corner Img = 435, 870, 435, 435
   let tileImg;
-  if (index !== length - 1) {
-    if (vector[0] === 0) {
-      tileImg = [0, 440, 440, 440];
-    } else {
-      tileImg = [0, 0, 440, 440];
-    }
+  // if (index !== length - 1) {
+  if (vector[0] === 0) {
+    tileImg = [0, 440, 440, 440];
   } else {
-    if (
-      (JSON.stringify(vector) === "[0,-1]" &&
-        JSON.stringify(nextVector) === "[1,0]") ||
-      (JSON.stringify(vector) === "[-1,0]" &&
-        JSON.stringify(nextVector) === "[0,1]")
-    ) {
-      tileImg = [440, 0, 440, 440];
-    } else if (
-      (JSON.stringify(vector) === "[1,0]" &&
-        JSON.stringify(nextVector) === "[0,1]") ||
-      (JSON.stringify(vector) === "[0,-1]" &&
-        JSON.stringify(nextVector) === "[-1,0]")
-    ) {
-      tileImg = [880, 0, 440, 440];
-    } else if (
-      (JSON.stringify(vector) === "[0,1]" &&
-        JSON.stringify(nextVector) === "[1,0]") ||
-      (JSON.stringify(vector) === "[-1,0]" &&
-        JSON.stringify(nextVector) === "[0,-1]")
-    ) {
-      tileImg = [440, 440, 440, 440];
-    } else if (
-      (JSON.stringify(vector) === "[1,0]" &&
-        JSON.stringify(nextVector) === "[0,-1]") ||
-      (JSON.stringify(vector) === "[0,1]" &&
-        JSON.stringify(nextVector) === "[-1,0]")
-    ) {
-      tileImg = [880, 440, 440, 440];
-    } else if (JSON.stringify(nextVector) === "[0,0]") {
-      tileImg = [0, 440, 440, 440];
-    }
+    tileImg = [0, 0, 440, 440];
   }
-  return tileImg;
+ // }
+  // } else {
+  //   if (
+  //     (JSON.stringify(vector) === "[0,-1]" &&
+  //       JSON.stringify(nextVector) === "[1,0]") ||
+  //     (JSON.stringify(vector) === "[-1,0]" &&
+  //       JSON.stringify(nextVector) === "[0,1]")
+  //   ) {
+  //     tileImg = [440, 0, 440, 440];
+  //   } else if (
+  //     (JSON.stringify(vector) === "[1,0]" &&
+  //       JSON.stringify(nextVector) === "[0,1]") ||
+  //     (JSON.stringify(vector) === "[0,-1]" &&
+  //       JSON.stringify(nextVector) === "[-1,0]")
+  //   ) {
+  //     tileImg = [880, 0, 440, 440];
+  //   } else if (
+  //     (JSON.stringify(vector) === "[0,1]" &&
+  //       JSON.stringify(nextVector) === "[1,0]") ||
+  //     (JSON.stringify(vector) === "[-1,0]" &&
+  //       JSON.stringify(nextVector) === "[0,-1]")
+  //   ) {
+  //     tileImg = [440, 440, 440, 440];
+  //   } else if (
+  //     (JSON.stringify(vector) === "[1,0]" &&
+  //       JSON.stringify(nextVector) === "[0,-1]") ||
+  //     (JSON.stringify(vector) === "[0,1]" &&
+  //       JSON.stringify(nextVector) === "[-1,0]")
+  //   ) {
+  //     tileImg = [880, 440, 440, 440];
+  //   } else if (JSON.stringify(nextVector) === "[0,0]") {
+  //     tileImg = [0, 440, 440, 440];
+  //   }
+  // }
+  // return tileImg;
+  return tileImg
 }
 
 function loadTorches() {
