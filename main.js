@@ -367,6 +367,9 @@ function playerAnim() {
 //   ctx.fill();
 // }
 
+//sdfgsdfg
+//dfbdfbdfb
+
 function loop() {
   ctx.fillStyle = "rgb(18, 0, 10)";
   ctx.fillRect(0, 0, cnv.width, cnv.height);
