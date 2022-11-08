@@ -329,46 +329,43 @@ function playerAnim() {
   }
 }
 
-// let gradient = {
-//   x: cnv.width / 2,
-//   y: cnv.height / 2,
-//   r1: 0,
-//   r2: 100,
-// };
+let gradient = {
+  x: cnv.width / 2,
+  y: cnv.height / 2,
+  r1: 0,
+  r2: 100,
+};
 
-// let angle = {
-//   up: [Math.PI, 0],
-//   down: [0, Math.PI],
-//   left: [Math.PI / 2, -Math.PI / 2],
-//   right: [-Math.PI / 2, Math.PI / 2],
-// };
+let angle = {
+  up: [Math.PI, 0],
+  down: [0, Math.PI],
+  left: [Math.PI / 2, -Math.PI / 2],
+  right: [-Math.PI / 2, Math.PI / 2],
+};
 
-// let frameCountLight = 0;
-// let currentRadius;
+let frameCountLight = 0;
+let currentRadius;
 
-// function getRandVector() {
-//   const min = -1;
-//   const max = 1;
+function getRandVector() {
+  const min = -1;
+  const max = 1;
 
-//   return Math.random() * (max - min + 1) + min;
-// }
+  return Math.random() * (max - min + 1) + min;
+}
 
-// function drawGradient(angles) {
-//   if (frameCountLight % 10 == 0) currentRadius = gradient.r2 + getRandVector();
+function drawGradient(angles) {
+  if (frameCountLight % 10 == 0) currentRadius = gradient.r2 + getRandVector();
 
-//   const gradientStyle = ctx.createRadialGradient(gradient.x, gradient.y, gradient.r1, gradient.x, gradient.y, currentRadius);
+  const gradientStyle = ctx.createRadialGradient(gradient.x, gradient.y, gradient.r1, gradient.x, gradient.y, currentRadius);
 
-//   gradientStyle.addColorStop(0, "yellow");
-//   gradientStyle.addColorStop(1, "rgba(0, 0, 0, 0.5)");
+  gradientStyle.addColorStop(0, "rgba(255, 130, 0, 0.1)");
+  gradientStyle.addColorStop(1, "rgba(0, 0, 0, 0.5)");
 
-//   ctx.fillStyle = gradientStyle;
+  ctx.fillStyle = gradientStyle;
 
-//   ctx.arc(gradient.x, gradient.y, gradient.r2, angles[0], angles[1]);
-//   ctx.fill();
-// }
-
-//sdfgsdfg
-//dfbdfbdfb
+  ctx.arc(gradient.x, gradient.y, gradient.r2, angles[0], angles[1]);
+  ctx.fill();
+}
 
 function loop() {
   ctx.fillStyle = "rgb(18, 0, 10)";
@@ -376,14 +373,15 @@ function loop() {
   for (let i = 0; i < corridorTiles.length; i++) {
     corridorTiles[i].draw();
   }
+  // ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+  // ctx.fillRect(0, 0, cnv.width, cnv.height);
 
   playerAnim();
   // flicker();
-  frameCount++;
-  //drawGradient(angle.up);
-  //ctx.fillRect(0, 0, cnv.width, cnv.height);
+  // frameCount++;
+  // drawGradient(angle.up);
 
-  //frameCountLight++;
+  frameCountLight++;
 
   requestAnimationFrame(loop);
 }
