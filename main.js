@@ -390,3 +390,4 @@ function loop() {
 
 generateCorridors();
 requestAnimationFrame(loop);
+//test
