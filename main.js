@@ -319,16 +319,6 @@ function flicker() {
 let left = true;
 let right = false;
 
-function playerAnim() {
-  if (mouse.down) {
-    const yDist = mouse.y - 520;
-    const xDist = mouse.x - 520;
-    const atan2 = (Math.atan2(yDist, xDist) * 180) / Math.PI;
-    const mouseAngle = (atan2 + 450) % 360;
-    console.log(mouseAngle);
-  }
-}
-
 let gradient = {
   x: cnv.width / 2,
   y: cnv.height / 2,
@@ -376,16 +366,47 @@ function loop() {
   // ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
   // ctx.fillRect(0, 0, cnv.width, cnv.height);
 
-  playerAnim();
   // flicker();
-  // frameCount++;
+  frameCount++;
   // drawGradient(angle.up);
 
-  frameCountLight++;
+  //frameCountLight++;
+  player.draw()
+  //console.log(player.x)
 
   requestAnimationFrame(loop);
 }
 
 generateCorridors();
 requestAnimationFrame(loop);
-//test
+let gunAngle = 0
+let player = {
+  x: 500,
+  y: 500,
+  w: 20,
+  h: 40,
+  draw: function() {
+    ctx.fillStyle = "blue"
+    ctx.fillRect(this.x, this.y, this.w, this.h)
+    const weaponImg = document.getElementById("weaponsimg")
+    const yDist = mouse.y - 520;
+    const xDist = mouse.x - 520;
+    const atan2 = (Math.atan2(yDist, xDist) * 180) / Math.PI;
+    const mouseAngle = Math.round((atan2 + 450) % 360);
+    ctx.save()
+    ctx.translate(cnv.width / 2, cnv.height /2 )
+    let rotateAngle = mouseAngle - gunAngle;
+    ctx.rotate(rotateAngle)
+    gunAngle += rotateAngle
+    console.log(rotateAngle)
+    ctx.drawImage(weaponImg, cnv.width / 2, cnv.height / 2, -32, -11)
+    console.log(this.x)
+    ctx.restore()
+
+  
+  }
+}
+
+
+
+
