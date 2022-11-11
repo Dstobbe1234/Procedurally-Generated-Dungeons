@@ -92,6 +92,7 @@ let player = {
     ctx.restore();
   },
 };
+//ckhoiuh
 
 class corridorTile {
   constructor(position, v, index, end) {
