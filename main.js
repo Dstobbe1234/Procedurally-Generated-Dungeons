@@ -11,30 +11,6 @@ document.addEventListener("mouseup", mouseupListener);
 document.addEventListener("mousemove", mousemoveListener);
 document.addEventListener("keydown", keydownListener);
 
-let playerDisplacement = [0, 0];
-let frameCount = 0;
-
-function keydownListener(event) {
-  if (event.key === "w") {
-    playerDisplacement[1] += 100;
-  } else if (event.key === "s") {
-    playerDisplacement[1] -= 100;
-  } else if (event.key === "a") {
-    playerDisplacement[0] += 100;
-  } else if (event.key === "d") {
-    playerDisplacement[0] -= 100;
-  }
-}
-const size = 440;
-const lengthRange = [3, 5];
-const segmentNum = 21;
-
-let mouse = {
-  x: 0,
-  y: 0,
-  down: false,
-};
-
 function mousedownListener() {
   mouse.down = true;
 }
@@ -52,7 +28,70 @@ function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
+function keydownListener(event) {
+  if (event.key === "w") {
+    playerDisplacement[1] += 100;
+  } else if (event.key === "s") {
+    playerDisplacement[1] -= 100;
+  } else if (event.key === "a") {
+    playerDisplacement[0] += 100;
+  } else if (event.key === "d") {
+    playerDisplacement[0] -= 100;
+  }
+}
+
+const size = 440;
+const lengthRange = [3, 5];
+const segmentNum = 21;
+const dungeonNum = 10;
+let playerDisplacement = [0, 0];
+let frameCount = 0;
 let corridorTiles = [];
+let left = true;
+let right = false;
+
+let gradient = {
+  x: cnv.width / 2,
+  y: cnv.height / 2,
+  r1: 0,
+  r2: 100,
+};
+gradient.cr = gradient.r2 + randomInt(-5, 5);
+
+let angle = {
+  up: [Math.PI, 0],
+  down: [0, Math.PI],
+  left: [Math.PI / 2, -Math.PI / 2],
+  right: [-Math.PI / 2, Math.PI / 2],
+};
+
+let mouse = {
+  x: 0,
+  y: 0,
+  down: false,
+};
+
+let player = {
+  x: 500,
+  y: 500,
+  w: 20,
+  h: 40,
+  vScale: 1,
+  draw: function () {
+    const weaponImg = document.getElementById("weaponsimg");
+    const xDist = mouse.x - this.y;
+    const yDist = mouse.y - this.y;
+    const atan2 = Math.atan2(yDist, xDist);
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(atan2);
+    ctx.fillStyle = "blue";
+    Math.abs(atan2) > Math.PI / 2 ? (this.vScale = -1) : (this.vScale = 1);
+    ctx.scale(1, 1);
+    ctx.drawImage(weaponImg, -32 / 2, -11 / 2, this.weaponFlip * 32, 11);
+    ctx.restore();
+  },
+};
 
 class corridorTile {
   constructor(position, v, index, end) {
@@ -103,7 +142,12 @@ class corridorTile {
 
   intersections() {
     let intersects = corridorTiles.filter((tile) => {
-      if (tile.position[0] == this.position[0] && tile.position[1] == this.position[1] && tile.index != this.index) return true;
+      if (
+        tile.position[0] == this.position[0] &&
+        tile.position[1] == this.position[1] &&
+        tile.index != this.index
+      )
+        return true;
     });
 
     if (intersects.length > 0) {
@@ -120,35 +164,30 @@ class corridorTile {
         tileCoordStr.includes(`[${this.position[0]},${this.position[1] + size}]`) &&
         tileCoordStr.includes(`[${this.position[0]},${this.position[1] - size}]`)
       ) {
-        console.log("fourway");
         this.imageCoords = [0, 880, 440, 440];
       } else if (
         tileCoordStr.includes(`[${this.position[0] + size},${this.position[1]}]`) &&
         tileCoordStr.includes(`[${this.position[0] - size},${this.position[1]}]`) &&
         tileCoordStr.includes(`[${this.position[0]},${this.position[1] + size}]`)
       ) {
-        console.log("topT");
         this.imageCoords = [880, 880, 440, 440];
       } else if (
         tileCoordStr.includes(`[${this.position[0] + size},${this.position[1]}]`) &&
         tileCoordStr.includes(`[${this.position[0] - size},${this.position[1]}]`) &&
         tileCoordStr.includes(`[${this.position[0]},${this.position[1] - size}]`)
       ) {
-        console.log("bottomT");
         this.imageCoords = [440, 1320, 440, 440];
       } else if (
         tileCoordStr.includes(`[${this.position[0] + size},${this.position[1]}]`) &&
         tileCoordStr.includes(`[${this.position[0]},${this.position[1] + size}]`) &&
         tileCoordStr.includes(`[${this.position[0]},${this.position[1] - size}]`)
       ) {
-        console.log("leftT");
         this.imageCoords = [440, 880, 440, 440];
       } else if (
         tileCoordStr.includes(`[${this.position[0] - size},${this.position[1]}]`) &&
         tileCoordStr.includes(`[${this.position[0]},${this.position[1] + size}]`) &&
         tileCoordStr.includes(`[${this.position[0]},${this.position[1] - size}]`)
       ) {
-        console.log("rightT");
         this.imageCoords = [880, 1320, 440, 440];
       } else {
         this.intersect = false;
@@ -237,7 +276,12 @@ function generateCorridors() {
       currentPos[1] += size * vector[1];
       const end = m == currentSegmentLength * 2 - 1 ? true : false;
 
-      const tile = new corridorTile([currentPos[0], currentPos[1]], vectorId, corridorTiles.length, end);
+      const tile = new corridorTile(
+        [currentPos[0], currentPos[1]],
+        vectorId,
+        corridorTiles.length,
+        end
+      );
       corridorTiles.push(tile);
     }
 
@@ -253,103 +297,20 @@ function generateCorridors() {
   });
 }
 
-const dungeonNum = 10;
-
-function flicker() {
-  const bezier = { x: 100, y: 100, r: 50 };
-  const points = getPoints();
-  let drawPoints = getPoints();
-  function getPoints() {
-    return [
-      { x: bezier.x, y: bezier.y - bezier.r },
-      {
-        x: bezier.x + bezier.r * 0.55339631805,
-        y: bezier.y - bezier.r * 0.99868073281,
-      },
-      {
-        x: bezier.x + bezier.r * 0.99868073281,
-        y: bezier.y - bezier.r * 0.55339631805,
-      },
-      { x: bezier.x + bezier.r, y: bezier.y },
-      {
-        x: bezier.x + bezier.r * 0.99868073281,
-        y: bezier.y + bezier.r * 0.55339631805,
-      },
-      {
-        x: bezier.x + bezier.r * 0.55339631805,
-        y: bezier.y + bezier.r * 0.99868073281,
-      },
-      { x: bezier.x, y: bezier.y + bezier.r },
-      {
-        x: bezier.x - bezier.r * 0.55339631805,
-        y: bezier.y + bezier.r * 0.99868073281,
-      },
-      {
-        x: bezier.x - bezier.r * 0.99868073281,
-        y: bezier.y + bezier.r * 0.55339631805,
-      },
-      { x: bezier.x - bezier.r, y: bezier.y },
-      {
-        x: bezier.x - bezier.r * 0.99868073281,
-        y: bezier.y - bezier.r * 0.55339631805,
-      },
-      {
-        x: bezier.x - bezier.r * 0.55339631805,
-        y: bezier.y - bezier.r * 0.99868073281,
-      },
-    ];
-  }
-  function moveBezierPoints() {
-    drawPoints.forEach((point, index) => {
-      point.x = points[index].x + getRandVector();
-      point.y = points[index].y + getRandVector();
-    });
-  }
-  function drawBezierCircle() {
-    ctx.beginPath();
-    ctx.moveTo(drawPoints[0].x, drawPoints[0].y);
-    ctx.bezierCurveTo(drawPoints[1].x, drawPoints[1].y, drawPoints[2].x, drawPoints[2].y, drawPoints[3].x, drawPoints[3].y);
-    ctx.bezierCurveTo(drawPoints[4].x, drawPoints[4].y, drawPoints[5].x, drawPoints[5].y, drawPoints[6].x, drawPoints[6].y);
-    ctx.bezierCurveTo(drawPoints[7].x, drawPoints[7].y, drawPoints[8].x, drawPoints[8].y, drawPoints[9].x, drawPoints[9].y);
-    ctx.bezierCurveTo(drawPoints[10].x, drawPoints[10].y, drawPoints[11].x, drawPoints[11].y, drawPoints[0].x, drawPoints[0].y);
-    ctx.fill();
-  }
-}
-
-let left = true;
-let right = false;
-
-let gradient = {
-  x: cnv.width / 2,
-  y: cnv.height / 2,
-  r1: 0,
-  r2: 100,
-};
-
-let angle = {
-  up: [Math.PI, 0],
-  down: [0, Math.PI],
-  left: [Math.PI / 2, -Math.PI / 2],
-  right: [-Math.PI / 2, Math.PI / 2],
-};
-
-let frameCountLight = 0;
-let currentRadius;
-
-function getRandVector() {
-  const min = -1;
-  const max = 1;
-
-  return Math.random() * (max - min + 1) + min;
-}
-
 function drawGradient(angles) {
-  if (frameCountLight % 10 == 0) currentRadius = gradient.r2 + getRandVector();
+  if (frameCount % 5 == 0) gradient.cr = gradient.r2 + randomInt(-5, 5);
 
-  const gradientStyle = ctx.createRadialGradient(gradient.x, gradient.y, gradient.r1, gradient.x, gradient.y, currentRadius);
+  const gradientStyle = ctx.createRadialGradient(
+    gradient.x,
+    gradient.y,
+    gradient.r1,
+    gradient.x,
+    gradient.y,
+    gradient.cr
+  );
 
-  gradientStyle.addColorStop(0, "rgba(255, 130, 0, 0.1)");
-  gradientStyle.addColorStop(1, "rgba(0, 0, 0, 0.5)");
+  gradientStyle.addColorStop(0, "rgba(255, 130, 0, 0.5)");
+  gradientStyle.addColorStop(1, "rgba(0, 0, 0, 0)");
 
   ctx.fillStyle = gradientStyle;
 
@@ -363,50 +324,15 @@ function loop() {
   for (let i = 0; i < corridorTiles.length; i++) {
     corridorTiles[i].draw();
   }
-  // ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-  // ctx.fillRect(0, 0, cnv.width, cnv.height);
+  ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+  ctx.fillRect(0, 0, cnv.width, cnv.height);
 
-  // flicker();
   frameCount++;
-  // drawGradient(angle.up);
-
-  //frameCountLight++;
-  player.draw()
-  //console.log(player.x)
+  drawGradient(angle.up);
+  player.draw();
 
   requestAnimationFrame(loop);
 }
 
 generateCorridors();
 requestAnimationFrame(loop);
-let gunAngle = 0
-let player = {
-  x: 500,
-  y: 500,
-  w: 20,
-  h: 40,
-  draw: function() {
-    ctx.fillStyle = "blue"
-    ctx.fillRect(this.x, this.y, this.w, this.h)
-    const weaponImg = document.getElementById("weaponsimg")
-    const yDist = mouse.y - 520;
-    const xDist = mouse.x - 520;
-    const atan2 = (Math.atan2(yDist, xDist) * 180) / Math.PI;
-    const mouseAngle = Math.round((atan2 + 450) % 360);
-    ctx.save()
-    ctx.translate(cnv.width / 2, cnv.height /2 )
-    let rotateAngle = mouseAngle - gunAngle;
-    ctx.rotate(rotateAngle)
-    gunAngle += rotateAngle
-    console.log(rotateAngle)
-    ctx.drawImage(weaponImg, cnv.width / 2, cnv.height / 2, -32, -11)
-    console.log(this.x)
-    ctx.restore()
-
-  
-  }
-}
-
-
-
-
