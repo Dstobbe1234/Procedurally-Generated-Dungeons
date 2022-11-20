@@ -342,10 +342,10 @@ function drawGradient(angles) {
   gradientStyle.addColorStop(1, "rgba(0, 0, 0, 0)");
 
   ctx.fillStyle = gradientStyle;
-
   ctx.arc(gradient.x, gradient.y, gradient.r2, angles[0], angles[1]);
   ctx.fill();
 }
+//lhkjsdfg
 
 function loop() {
   ctx.fillStyle = "rgb(18, 0, 10)";
