@@ -264,7 +264,8 @@ function generateCorridors() {
 
   for (let i = 0; i < segmentNum; i++) {
     if (i == 0) {
-      currentSegmentLength = randomInt(lengthRange[0], lengthRange[1]) * 2 - 1;
+      // currentSegmentLength = randomInt(lengthRange[0], lengthRange[1]) * 2 -1;
+      currentSegmentLength = 5
     }
     if (i == segmentNum - 1) {
       vector = [0, -1];
@@ -273,25 +274,20 @@ function generateCorridors() {
       nextVector = vectorArr[nextVectorIndex][randomInt(0, 2)];
     }
 
-    let vectorId = vectorArr
-      .flat()
-      .map((x) => x.toString())
-      .indexOf(vector.toString());
+    let vectorId = vectorArr.flat().map((x) => x.toString()).indexOf(vector.toString());
 
     nextSegmentLength = randomInt(lengthRange[0], lengthRange[1]) * 2;
+    //segment length can either be 4 or 6
 
-    test: for (let m = 0; m < currentSegmentLength; m++) {
+    for (let m = 0; m < currentSegmentLength; m++) {
       if (m > 0 || i > 0) {
         currentPos[0] += size * vector[0];
         currentPos[1] += size * vector[1];
       }
 
-      if (fixHallways(currentPos[0], currentPos[1], i)) {
-        corridorTiles[corridorTiles.length - 1].end = true;
-        break test;
-      }
-
       const end = m == currentSegmentLength - 1 && i != segmentNum - 1 ? true : false;
+
+      let problem = fixHallways(currentPos[0], currentPos[1], i, end, vectorId)
 
       const tile = new corridorTile([currentPos[0], currentPos[1]], vectorId, corridorTiles.length, end);
       corridorTiles.push(tile);
@@ -309,13 +305,16 @@ function generateCorridors() {
   });
 }
 
-function fixHallways(x, y, i) {
-  if (i == 0) return false;
-
-  const inRangeX = x < start[0] + 3 * size && x > start[0] - 3 * size ? true : false;
-  const inRangeY = y < start[1] + 3 * size && y > start[1] - 3 * size ? true : false;
-  if (inRangeX && inRangeY) {
-    return true;
+function fixHallways(x, y, i, end, v) {
+  if (i == 0) return 0;
+  if(!end) {
+    const inRangeX = (x == start[0] + 4 * size || x == start[0] - 4 * size) && (y >= start[1] - 4 * size && y <= start[1] + 4 * size) && (v == 2 || v == 3) ? true : false
+    const inRangeY = (y == start[1] + 4 * size || y == start[1] - 4 * size) && (x >= start[0] - 4 * size && x <= start[0] + 4 * size) && (v == 0 || v == 1) ? true : false
+    if (inRangeX || inRangeY) {
+      return currentSegmentLength - 1
+    }
+  } else {
+    
   }
 }
 
@@ -369,6 +368,8 @@ function loop() {
       ctx.strokeRect(x + (playerDisplacement[0] % size), y + (playerDisplacement[1] % size), size, size);
     }
   }
+  ctx.fillStyle = "rgba(255, 0, 0, 0.4)"
+  ctx.fillRect(start[0] - (3 * size) + playerDisplacement[0], start[1] - (3 * size) + playerDisplacement[1], 7 * size, 7 * size)
 
   ctx.strokeStyle = "orange";
   ctx.strokeRect(500 + playerDisplacement[0], 500 + playerDisplacement[1], size, size);
