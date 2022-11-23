@@ -133,6 +133,7 @@ class corridorTile {
     this.index = index;
     this.end = end;
     this.torchFrame = 0;
+    this.color = "green"
 
     if (this.v == 0 || this.v == 1) {
       this.direction = "v";
@@ -215,7 +216,7 @@ class corridorTile {
       size,
       size
     );
-    ctx.fillStyle = "green";
+    ctx.fillStyle = this.color;
     ctx.fillRect(this.position[0] + playerDisplacement[0], this.position[1] + playerDisplacement[1], size, size);
   }
   loadTorches() {
@@ -279,7 +280,7 @@ function generateCorridors() {
     nextSegmentLength = randomInt(lengthRange[0], lengthRange[1]) * 2;
     //segment length can either be 4 or 6
 
-    for (let m = 0; m < currentSegmentLength; m++) {
+    loop: for (let m = 0; m < currentSegmentLength; m++) {
       if (m > 0 || i > 0) {
         currentPos[0] += size * vector[0];
         currentPos[1] += size * vector[1];
@@ -287,7 +288,26 @@ function generateCorridors() {
 
       const end = m == currentSegmentLength - 1 && i != segmentNum - 1 ? true : false;
 
-      let problem = fixHallways(currentPos[0], currentPos[1], i, end, vectorId)
+      let fix = fixHallways(currentPos[0], currentPos[1], i, m)
+      if(fix == 1) {
+        corridorTiles[corridorTiles.length - 1].color = "purple"
+        corridorTiles[corridorTiles.length - 1].end = true
+        currentPos[0] -= size * vector[0];
+        currentPos[1] -= size * vector[1];
+        break loop
+      } else if(fix == 2) {
+        i-- 
+        console.log(vector)
+        if(vector[0] == 0) {
+          nextVector = [vector[0], -vector[1]]
+        } else {
+          nextVector = [-vector[0], vector[1]]
+        }
+        console.log(nextVector)
+        currentPos[0] -= size * vector[0];
+        currentPos[1] -= size * vector[1];
+        break loop
+      }
 
       const tile = new corridorTile([currentPos[0], currentPos[1]], vectorId, corridorTiles.length, end);
       corridorTiles.push(tile);
@@ -305,16 +325,21 @@ function generateCorridors() {
   });
 }
 
-function fixHallways(x, y, i, end, v) {
-  if (i == 0) return 0;
-  if(!end) {
-    const inRangeX = (x == start[0] + 4 * size || x == start[0] - 4 * size) && (y >= start[1] - 4 * size && y <= start[1] + 4 * size) && (v == 2 || v == 3) ? true : false
-    const inRangeY = (y == start[1] + 4 * size || y == start[1] - 4 * size) && (x >= start[0] - 4 * size && x <= start[0] + 4 * size) && (v == 0 || v == 1) ? true : false
-    if (inRangeX || inRangeY) {
-      return currentSegmentLength - 1
+function fixHallways(x, y, i, m) {
+  if(i == 0) {
+    return 0
+  }
+  const inRangeX = (x == start[0] + (3 * size) || x == start[0] - (3 * size)) && (y <= start[1] + (3 * size) && y >= start[1] - (3 * size)) ? true : false;
+  const inRangeY = (x == start[0] + (3 * size) || x == start[0] - (3 * size)) && (y <= start[1] + (3 * size) && y >= start[1] - (3 * size)) ? true : false;
+  if(inRangeX || inRangeY) {
+    if(m >= 2) {
+      console.log(1)
+      return 1
+    } else {
+      return 2
     }
   } else {
-    
+    return 0
   }
 }
 
