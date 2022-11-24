@@ -133,7 +133,7 @@ class corridorTile {
     this.index = index;
     this.end = end;
     this.torchFrame = 0;
-    this.color = "green"
+    this.color = "green";
 
     if (this.v == 0 || this.v == 1) {
       this.direction = "v";
@@ -205,17 +205,21 @@ class corridorTile {
   }
 
   draw() {
-    ctx.drawImage(
-      hallwaysPng,
-      this.imageCoords[0],
-      this.imageCoords[1],
-      this.imageCoords[2],
-      this.imageCoords[3],
-      this.position[0] + playerDisplacement[0],
-      this.position[1] + playerDisplacement[1],
-      size,
-      size
-    );
+    if (this.imageCoords !== undefined) {
+      ctx.drawImage(
+        hallwaysPng,
+        this.imageCoords[0],
+        this.imageCoords[1],
+        this.imageCoords[2],
+        this.imageCoords[3],
+        this.position[0] + playerDisplacement[0],
+        this.position[1] + playerDisplacement[1],
+        size,
+        size
+      );
+    } else {
+      this.color = "yellow";
+    }
     ctx.fillStyle = this.color;
     ctx.fillRect(this.position[0] + playerDisplacement[0], this.position[1] + playerDisplacement[1], size, size);
   }
@@ -265,8 +269,7 @@ function generateCorridors() {
 
   for (let i = 0; i < segmentNum; i++) {
     if (i == 0) {
-      // currentSegmentLength = randomInt(lengthRange[0], lengthRange[1]) * 2 -1;
-      currentSegmentLength = 5
+      currentSegmentLength = 5;
     }
     if (i == segmentNum - 1) {
       vector = [0, -1];
@@ -275,12 +278,15 @@ function generateCorridors() {
       nextVector = vectorArr[nextVectorIndex][randomInt(0, 2)];
     }
 
-    let vectorId = vectorArr.flat().map((x) => x.toString()).indexOf(vector.toString());
+    let vectorId = vectorArr
+      .flat()
+      .map((x) => x.toString())
+      .indexOf(vector.toString());
 
     nextSegmentLength = randomInt(lengthRange[0], lengthRange[1]) * 2;
     //segment length can either be 4 or 6
 
-    loop: for (let m = 0; m < currentSegmentLength; m++) {
+    for (let m = 0; m < currentSegmentLength; m++) {
       if (m > 0 || i > 0) {
         currentPos[0] += size * vector[0];
         currentPos[1] += size * vector[1];
@@ -288,29 +294,31 @@ function generateCorridors() {
 
       const end = m == currentSegmentLength - 1 && i != segmentNum - 1 ? true : false;
 
-      let fix = fixHallways(currentPos[0], currentPos[1], i, m)
-      if(fix == 1) {
-        corridorTiles[corridorTiles.length - 1].color = "purple"
-        corridorTiles[corridorTiles.length - 1].end = true
+      let fixStart = fixHallways(currentPos[0], currentPos[1], i, m);
+      if (fixStart == 1) {
+        corridorTiles[corridorTiles.length - 1].end = true;
         currentPos[0] -= size * vector[0];
         currentPos[1] -= size * vector[1];
-        break loop
-      } else if(fix == 2) {
-        i-- 
-        console.log(vector)
-        if(vector[0] == 0) {
-          nextVector = [vector[0], -vector[1]]
+        break;
+      } else if (fixStart == 2) {
+        i--;
+        if (vector[0] == 0) {
+          nextVector = [vector[0], -vector[1]];
         } else {
-          nextVector = [-vector[0], vector[1]]
+          nextVector = [-vector[0], vector[1]];
         }
-        console.log(nextVector)
         currentPos[0] -= size * vector[0];
         currentPos[1] -= size * vector[1];
-        break loop
+        nextVectorIndex = 1 - nextVectorIndex;
+        break;
       }
 
       const tile = new corridorTile([currentPos[0], currentPos[1]], vectorId, corridorTiles.length, end);
       corridorTiles.push(tile);
+
+      if (i == segmentNum - 1 && m == currentSegmentLength - 1) {
+        currentSegmentLength -= fixEnd(currentPos[0], currentPos[1], currentSegmentLength);
+      }
     }
 
     vector = nextVector;
@@ -326,25 +334,43 @@ function generateCorridors() {
 }
 
 function fixHallways(x, y, i, m) {
-  if(i == 0) {
-    return 0
+  if (i == 0) {
+    return 0;
   }
-  const inRangeX = (x == start[0] + (3 * size) || x == start[0] - (3 * size)) && (y <= start[1] + (3 * size) && y >= start[1] - (3 * size)) ? true : false;
-  const inRangeY = (x == start[0] + (3 * size) || x == start[0] - (3 * size)) && (y <= start[1] + (3 * size) && y >= start[1] - (3 * size)) ? true : false;
-  if(inRangeX || inRangeY) {
-    if(m >= 2) {
-      console.log(1)
-      return 1
+  const inRangeX = (x == start[0] + 3 * size || x == start[0] - 3 * size) && y <= start[1] + 3 * size && y >= start[1] - 3 * size ? true : false;
+  const inRangeY = (y == start[1] + 3 * size || y == start[1] - 3 * size) && x <= start[0] + 3 * size && x >= start[0] - 3 * size ? true : false;
+  if (inRangeX || inRangeY) {
+    if (m > 0) {
+      return 1;
     } else {
-      return 2
+      return 2;
     }
   } else {
-    return 0
+    return 0;
   }
 }
 
+function fixEnd(x, y, lastLength) {
+  let yDif = 0;
+  for (let i = 0; i < corridorTiles.length - lastLength; i++) {
+    const tileX = corridorTiles[i].position[0];
+    const tileY = corridorTiles[i].position[1];
+    const inRangeX = tileX >= x - 3 * size && tileX <= x + 3 * size ? true : false;
+    const inRangeY = tileY >= y - 3 * size && tileY <= y + 3 * size ? true : false;
+    if (inRangeX && inRangeY) {
+      console.log("EE?");
+      corridorTiles[i].color = "turquoise";
+      const currentYDif = y + 3 * size - tileY;
+      if (currentYDif > yDif) {
+        yDif = currentYDif;
+        console.log(yDif);
+      }
+    }
+  }
+  return yDif;
+}
+
 function loadEnemies() {
-  console.log(corridorTiles.length);
   let enemyNum = 5;
   let enemyCoords = corridorTiles.map((tile) => [tile.position[0], tile.position[1]]);
   for (let i = 0; i < enemyNum; i++) {
@@ -353,8 +379,6 @@ function loadEnemies() {
     enemies.push(new enemy(randomCoord[0] + size / 2, randomCoord[1] + size / 2));
     enemyCoords.splice(randomIndex, 1);
   }
-
-  console.log(enemies);
 }
 
 function drawGradient(angles) {
@@ -369,7 +393,6 @@ function drawGradient(angles) {
   ctx.arc(gradient.x, gradient.y, gradient.r2, angles[0], angles[1]);
   ctx.fill();
 }
-//lhkjsdfg
 
 function loop() {
   ctx.fillStyle = "rgb(18, 0, 10)";
@@ -393,8 +416,14 @@ function loop() {
       ctx.strokeRect(x + (playerDisplacement[0] % size), y + (playerDisplacement[1] % size), size, size);
     }
   }
-  ctx.fillStyle = "rgba(255, 0, 0, 0.4)"
-  ctx.fillRect(start[0] - (3 * size) + playerDisplacement[0], start[1] - (3 * size) + playerDisplacement[1], 7 * size, 7 * size)
+  ctx.fillStyle = "rgba(255, 0, 0, 0.4)";
+  ctx.fillRect(start[0] - 3 * size + playerDisplacement[0], start[1] - 3 * size + playerDisplacement[1], 7 * size, 7 * size);
+  ctx.fillRect(
+    corridorTiles[corridorTiles.length - 1].position[0] - 3 * size + playerDisplacement[0],
+    corridorTiles[corridorTiles.length - 1].position[1] - 3 * size + playerDisplacement[1],
+    7 * size,
+    7 * size
+  );
 
   ctx.strokeStyle = "orange";
   ctx.strokeRect(500 + playerDisplacement[0], 500 + playerDisplacement[1], size, size);
