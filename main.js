@@ -8,17 +8,12 @@ const itemsImg = document.getElementById("itemsPng");
 const ladderImg = document.getElementById("ladderImg");
 
 document.addEventListener("mousedown", mousedownListener);
-document.addEventListener("mouseup", mouseupListener);
 document.addEventListener("mousemove", mousemoveListener);
 document.addEventListener("keydown", keydownListener);
 document.addEventListener("keyup", keyupListener);
 
 function mousedownListener() {
   mouse.state = 2;
-}
-
-function mouseupListener() {
-  // mouse.state = 1;
 }
 
 function mousemoveListener(event) {
