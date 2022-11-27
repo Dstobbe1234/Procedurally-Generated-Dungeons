@@ -80,17 +80,6 @@ let player = {
   draw: function () {
     ctx.fillStyle = "blue";
     ctx.fillRect(this.x, this.y, this.w, this.h);
-
-    // const weaponImg = document.getElementById("weaponsimg");
-
-    // ctx.save();
-    // ctx.translate(this.x, this.y);
-    // ctx.rotate(atan2);
-    // Math.abs(atan2) > Math.PI / 2 ? (this.vScale = -1) : (this.vScale = 1);
-    // ctx.scale(1, this.vScale);
-    // ctx.drawImage(weaponImg, -32 / 2, -11 / 2, 32, 11);
-    // ctx.restore();
-    // rotate(weaponImg, atan2);
     weapon.draw();
   },
   move: function () {
@@ -116,6 +105,7 @@ const weapon = {
   y: player.y,
   w: 32,
   h: 11,
+  frameCoords: [0, 0],
   draw: function () {
     rotate(this, atan2);
     if (mouse.state == 2) {
@@ -134,13 +124,23 @@ class bullet {
     this.y = y;
     this.w = w;
     this.h = h;
+    this.frameCoords = [0, 0];
     this.img = img;
     this.angle = angle;
+    this.frameCount = 0;
   }
   draw() {
+    this.x += 4 * Math.cos(this.angle);
+    this.y += 4 * Math.sin(this.angle);
+    if (this.frameCount % 5 == 0) {
+      if (this.frameCoords[0] < 84) {
+        this.frameCoords[0] += this.w;
+      } else {
+        this.frameCoords[0] = 0;
+      }
+    }
+    this.frameCount++;
     rotate(this, this.angle);
-    this.x += Math.cos(this.angle);
-    this.y += Math.sin(this.angle);
   }
 }
 
@@ -151,7 +151,7 @@ function rotate(obj, angle) {
   //decides whether to flip image or not
   Math.abs(angle) > Math.PI / 2 ? (vScale = -1) : (vScale = 1);
   ctx.scale(1, vScale);
-  ctx.drawImage(obj.img, -obj.w / 2, -obj.h / 2, obj.w, obj.h);
+  ctx.drawImage(obj.img, obj.frameCoords[0], obj.frameCoords[1], obj.w, obj.h, -obj.w / 2, -obj.h / 2, obj.w, obj.h);
   ctx.restore();
 }
 
