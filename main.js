@@ -14,11 +14,11 @@ document.addEventListener("keydown", keydownListener);
 document.addEventListener("keyup", keyupListener);
 
 function mousedownListener() {
-  mouse.down = true;
+  mouse.state = 2;
 }
 
 function mouseupListener() {
-  mouse.down = false;
+  // mouse.state = 1;
 }
 
 function mousemoveListener(event) {
@@ -39,7 +39,7 @@ function keyupListener(event) {
   input[event.key] = false;
 }
 
-const size = 440;
+const size = 10;
 const lengthRange = [2, 4];
 const segmentNum = 21;
 const dungeonNum = 10;
@@ -69,39 +69,34 @@ let angle = {
 let mouse = {
   x: 0,
   y: 0,
-  down: false,
+  state: 1,
 };
 
 const pWidth = 20;
 const pHeight = 40;
-let atan2 
-let x = this.x + 32 * Math.cos(atan2)
-let y = this.y + 11 * Math.sin(atan2)
-let imgX = 0
-let bulletFrame = 0
+let atan2;
+let vScale = 1;
 let player = {
   x: cnv.width / 2 - pWidth / 2,
   y: cnv.height / 2 - pHeight / 2,
   w: pWidth,
   h: pHeight,
   speed: 8,
-  vScale: 1,
   draw: function () {
     ctx.fillStyle = "blue";
     ctx.fillRect(this.x, this.y, this.w, this.h);
 
-    const weaponImg = document.getElementById("weaponsimg");
-    const xDist = mouse.x - this.y;
-    const yDist = mouse.y - this.y;
-    atan2 = Math.atan2(yDist, xDist);
+    // const weaponImg = document.getElementById("weaponsimg");
 
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(atan2);
-    Math.abs(atan2) > Math.PI / 2 ? (this.vScale = -1) : (this.vScale = 1);
-    ctx.scale(1, this.vScale);
-    ctx.drawImage(weaponImg, -32 / 2, -11 / 2, 32, 11);
-    ctx.restore();
+    // ctx.save();
+    // ctx.translate(this.x, this.y);
+    // ctx.rotate(atan2);
+    // Math.abs(atan2) > Math.PI / 2 ? (this.vScale = -1) : (this.vScale = 1);
+    // ctx.scale(1, this.vScale);
+    // ctx.drawImage(weaponImg, -32 / 2, -11 / 2, 32, 11);
+    // ctx.restore();
+    // rotate(weaponImg, atan2);
+    weapon.draw();
   },
   move: function () {
     if (input.w) {
@@ -117,34 +112,53 @@ let player = {
       playerDisplacement[0] -= this.speed;
     }
   },
-  shoot: function () {
-    // if(mouse.down) {
-    //   if(bulletFrame % 10 == 0) {
-    //     if(imgX !== 84) {
-    //       imgX += 28
-    //     } else {
-    //       imgX = 0
-    //     }
-    //   }
-    //   const bulletImg = document.getElementById("bullet")
-    //   ctx.save();
-    //   ctx.translate(this.x, this.y);
-    //   ctx.rotate(atan2);
-    //   Math.abs(atan2) > Math.PI / 2 ? (this.vScale = -1) : (this.vScale = 1);
-    //   ctx.scale(1, this.vScale);
-    //   ctx.drawImage(bulletImg, imgX, 0, 28, 14, x, y, 28, 14);
-    //   ctx.restore();
-    //   x += 0.5 * Math.cos(atan2)
-    //   y += 0.5 * Math.sin(atan2)
-    //   bulletFrame ++
-    //   console.log("pew")
-    // } else {
-    //   x = this.x + 32 * Math.cos(atan2)
-    //   y = this.y + 11 * Math.sin(atan2)
-    //   bulletFrame = 0
-    // }
-  }
 };
+
+let bullets = [];
+const weapon = {
+  img: document.getElementById("weaponsimg"),
+  x: player.x,
+  y: player.y,
+  w: 32,
+  h: 11,
+  draw: function () {
+    rotate(this, atan2);
+    if (mouse.state == 2) {
+      bullets.push(new bullet(this.x, this.y, 28, 14, document.getElementById("bullet"), atan2));
+      mouse.state = 1;
+    }
+    for (let i = 0; i < bullets.length; i++) {
+      bullets[i].draw();
+    }
+  },
+};
+
+class bullet {
+  constructor(x, y, w, h, img, angle) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.img = img;
+    this.angle = angle;
+  }
+  draw() {
+    rotate(this, this.angle);
+    this.x += Math.cos(this.angle);
+    this.y += Math.sin(this.angle);
+  }
+}
+
+function rotate(obj, angle) {
+  ctx.save();
+  ctx.translate(obj.x, obj.y);
+  ctx.rotate(angle);
+  //decides whether to flip image or not
+  Math.abs(angle) > Math.PI / 2 ? (vScale = -1) : (vScale = 1);
+  ctx.scale(1, vScale);
+  ctx.drawImage(obj.img, -obj.w / 2, -obj.h / 2, obj.w, obj.h);
+  ctx.restore();
+}
 
 class enemy {
   constructor(x, y) {
@@ -252,8 +266,8 @@ class corridorTile {
     } else {
       this.color = "yellow";
     }
-    // ctx.fillStyle = this.color;
-    // ctx.fillRect(this.position[0] + playerDisplacement[0], this.position[1] + playerDisplacement[1], size, size);
+    ctx.fillStyle = this.color;
+    ctx.fillRect(this.position[0] + playerDisplacement[0], this.position[1] + playerDisplacement[1], size, size);
   }
   loadTorches() {
     if (!this.end && !this.intersect) {
@@ -393,7 +407,6 @@ function fixEnd(x, y, lastLength) {
       const currentYDif = (y + 4 * size - tileY) / size;
       if (currentYDif > yDif) {
         yDif = currentYDif;
-        console.log(yDif);
       }
     }
   }
@@ -440,20 +453,20 @@ function loop() {
     enemies[i].draw();
   }
 
-  // for (let y = -size; y < cnv.height + size; y += size) {
-  //   for (let x = -size; x < cnv.width + size; x += size) {
-  //     ctx.strokeStyle = "rgb(90, 90, 90)";
-  //     ctx.strokeRect(x + (playerDisplacement[0] % size), y + (playerDisplacement[1] % size), size, size);
-  //   }
-  // }
-  // ctx.fillStyle = "rgba(255, 0, 0, 0.4)";
-  // ctx.fillRect(start[0] - 3 * size + playerDisplacement[0], start[1] - 3 * size + playerDisplacement[1], 7 * size, 7 * size);
-  // ctx.fillRect(
-  //   corridorTiles[corridorTiles.length - 1].position[0] - 3 * size + playerDisplacement[0],
-  //   corridorTiles[corridorTiles.length - 1].position[1] - 3 * size + playerDisplacement[1],
-  //   7 * size,
-  //   7 * size
-  // );
+  for (let y = -size; y < cnv.height + size; y += size) {
+    for (let x = -size; x < cnv.width + size; x += size) {
+      ctx.strokeStyle = "rgb(40, 40, 40)";
+      ctx.strokeRect(x + (playerDisplacement[0] % size), y + (playerDisplacement[1] % size), size, size);
+    }
+  }
+  ctx.fillStyle = "rgba(255, 0, 0, 0.4)";
+  ctx.fillRect(start[0] - 3 * size + playerDisplacement[0], start[1] - 3 * size + playerDisplacement[1], 7 * size, 7 * size);
+  ctx.fillRect(
+    corridorTiles[corridorTiles.length - 1].position[0] - 3 * size + playerDisplacement[0],
+    corridorTiles[corridorTiles.length - 1].position[1] - 3 * size + playerDisplacement[1],
+    7 * size,
+    7 * size
+  );
 
   ctx.strokeStyle = "orange";
   ctx.strokeRect(500 + playerDisplacement[0], 500 + playerDisplacement[1], size, size);
@@ -471,7 +484,9 @@ function loop() {
   player.move();
   frameCount++;
 
-  player.shoot()
+  const xDist = mouse.x - player.x;
+  const yDist = mouse.y - player.y;
+  atan2 = Math.atan2(yDist, xDist);
   requestAnimationFrame(loop);
 }
 
