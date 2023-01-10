@@ -34,7 +34,7 @@ function keyupListener(event) {
   input[event.key] = false;
 }
 
-const size = 10;
+const size = 100;
 const lengthRange = [2, 4];
 const segmentNum = 21;
 const dungeonNum = 10;
@@ -42,7 +42,6 @@ const start = [500, 500];
 let playerDisplacement = [0, 0];
 let frameCount = 0;
 let corridorTiles = [];
-let enemies = [];
 let left = true;
 let right = false;
 
@@ -151,20 +150,18 @@ function rotate(obj, angle) {
   //decides whether to flip image or not
   Math.abs(angle) > Math.PI / 2 ? (vScale = -1) : (vScale = 1);
   ctx.scale(1, vScale);
-  ctx.drawImage(obj.img, obj.frameCoords[0], obj.frameCoords[1], obj.w, obj.h, -obj.w / 2, -obj.h / 2, obj.w, obj.h);
+  ctx.drawImage(
+    obj.img,
+    obj.frameCoords[0],
+    obj.frameCoords[1],
+    obj.w,
+    obj.h,
+    -obj.w / 2,
+    -obj.h / 2,
+    obj.w,
+    obj.h
+  );
   ctx.restore();
-}
-
-class enemy {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-
-  draw() {
-    ctx.fillStyle = "red";
-    ctx.fillRect(this.x + playerDisplacement[0], this.y + playerDisplacement[1], 50, 50);
-  }
 }
 
 class corridorTile {
@@ -174,7 +171,6 @@ class corridorTile {
     this.index = index;
     this.end = end;
     this.torchFrame = 0;
-    this.color = "green";
 
     if (this.v == 0 || this.v == 1) {
       this.direction = "v";
@@ -213,7 +209,12 @@ class corridorTile {
 
   intersections() {
     let intersects = corridorTiles.filter((tile) => {
-      if (tile.position[0] == this.position[0] && tile.position[1] == this.position[1] && tile.index != this.index) return true;
+      if (
+        tile.position[0] == this.position[0] &&
+        tile.position[1] == this.position[1] &&
+        tile.index != this.index
+      )
+        return true;
     });
 
     if (intersects.length > 0) {
@@ -246,23 +247,17 @@ class corridorTile {
   }
 
   draw() {
-    if (this.imageCoords !== undefined) {
-      ctx.drawImage(
-        hallwaysPng,
-        this.imageCoords[0],
-        this.imageCoords[1],
-        this.imageCoords[2],
-        this.imageCoords[3],
-        this.position[0] + playerDisplacement[0],
-        this.position[1] + playerDisplacement[1],
-        size,
-        size
-      );
-    } else {
-      this.color = "yellow";
-    }
-    ctx.fillStyle = this.color;
-    ctx.fillRect(this.position[0] + playerDisplacement[0], this.position[1] + playerDisplacement[1], size, size);
+    ctx.drawImage(
+      hallwaysPng,
+      this.imageCoords[0],
+      this.imageCoords[1],
+      this.imageCoords[2],
+      this.imageCoords[3],
+      this.position[0] + playerDisplacement[0],
+      this.position[1] + playerDisplacement[1],
+      size,
+      size
+    );
   }
   loadTorches() {
     if (!this.end && !this.intersect) {
@@ -354,7 +349,12 @@ function generateCorridors() {
         break;
       }
 
-      const tile = new corridorTile([currentPos[0], currentPos[1]], vectorId, corridorTiles.length, end);
+      const tile = new corridorTile(
+        [currentPos[0], currentPos[1]],
+        vectorId,
+        corridorTiles.length,
+        end
+      );
       corridorTiles.push(tile);
 
       if (i == segmentNum - 1 && m == currentSegmentLength - 1) {
@@ -378,8 +378,18 @@ function fixHallways(x, y, i, m) {
   if (i == 0) {
     return 0;
   }
-  const inRangeX = (x == start[0] + 3 * size || x == start[0] - 3 * size) && y <= start[1] + 3 * size && y >= start[1] - 3 * size ? true : false;
-  const inRangeY = (y == start[1] + 3 * size || y == start[1] - 3 * size) && x <= start[0] + 3 * size && x >= start[0] - 3 * size ? true : false;
+  const inRangeX =
+    (x == start[0] + 3 * size || x == start[0] - 3 * size) &&
+    y <= start[1] + 3 * size &&
+    y >= start[1] - 3 * size
+      ? true
+      : false;
+  const inRangeY =
+    (y == start[1] + 3 * size || y == start[1] - 3 * size) &&
+    x <= start[0] + 3 * size &&
+    x >= start[0] - 3 * size
+      ? true
+      : false;
   if (inRangeX || inRangeY) {
     if (m > 0) {
       return 1;
@@ -408,21 +418,17 @@ function fixEnd(x, y, lastLength) {
   return yDif;
 }
 
-function loadEnemies() {
-  let enemyNum = 5;
-  let enemyCoords = corridorTiles.map((tile) => [tile.position[0], tile.position[1]]);
-  for (let i = 0; i < enemyNum; i++) {
-    let randomIndex = randomInt(0, enemyCoords.length);
-    let randomCoord = enemyCoords[randomIndex];
-    enemies.push(new enemy(randomCoord[0] + size / 2, randomCoord[1] + size / 2));
-    enemyCoords.splice(randomIndex, 1);
-  }
-}
-
 function drawGradient(angles) {
   if (frameCount % 5 == 0) gradient.cr = gradient.r2 + randomInt(-5, 5);
 
-  const gradientStyle = ctx.createRadialGradient(gradient.x, gradient.y, gradient.r1, gradient.x, gradient.y, gradient.cr);
+  const gradientStyle = ctx.createRadialGradient(
+    gradient.x,
+    gradient.y,
+    gradient.r1,
+    gradient.x,
+    gradient.y,
+    gradient.cr
+  );
 
   gradientStyle.addColorStop(0, "rgba(255, 130, 0, 0.3)");
   gradientStyle.addColorStop(1, "rgba(0, 0, 0, 0)");
@@ -444,35 +450,6 @@ function loop() {
   // ctx.fillRect(0, 0, cnv.width, cnv.height);
 
   // drawGradient(angle.up);
-  for (let i = 0; i < enemies.length; i++) {
-    enemies[i].draw();
-  }
-
-  for (let y = -size; y < cnv.height + size; y += size) {
-    for (let x = -size; x < cnv.width + size; x += size) {
-      ctx.strokeStyle = "rgb(40, 40, 40)";
-      ctx.strokeRect(x + (playerDisplacement[0] % size), y + (playerDisplacement[1] % size), size, size);
-    }
-  }
-  ctx.fillStyle = "rgba(255, 0, 0, 0.4)";
-  ctx.fillRect(start[0] - 3 * size + playerDisplacement[0], start[1] - 3 * size + playerDisplacement[1], 7 * size, 7 * size);
-  ctx.fillRect(
-    corridorTiles[corridorTiles.length - 1].position[0] - 3 * size + playerDisplacement[0],
-    corridorTiles[corridorTiles.length - 1].position[1] - 3 * size + playerDisplacement[1],
-    7 * size,
-    7 * size
-  );
-
-  ctx.strokeStyle = "orange";
-  ctx.strokeRect(500 + playerDisplacement[0], 500 + playerDisplacement[1], size, size);
-
-  ctx.strokeStyle = "red";
-  ctx.strokeRect(
-    corridorTiles[corridorTiles.length - 1].position[0] + playerDisplacement[0],
-    corridorTiles[corridorTiles.length - 1].position[1] + playerDisplacement[1],
-    size,
-    size
-  );
 
   player.draw();
 
@@ -486,5 +463,4 @@ function loop() {
 }
 
 generateCorridors();
-// loadEnemies();
 requestAnimationFrame(loop);
